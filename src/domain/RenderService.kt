@@ -98,8 +98,7 @@ class RenderService(private val size: Int,
     }
 
     fun moveLeft(): Int {
-        moveUpLeftTemplate({ _, j -> j },
-                { i, j -> cellList[i][j] },
+        moveUpLeftTemplate({ i, j -> cellList[i][j] },
                 { innerCycle -> (innerCycle - 1) >= 0 }) { innerCycle, externalCycle ->
             val shiftCell = cellList[externalCycle][innerCycle - 1]
             val currentCell = cellList[externalCycle][innerCycle]
@@ -122,8 +121,7 @@ class RenderService(private val size: Int,
     }
 
     fun moveUp(): Int {
-        moveUpLeftTemplate({ _, j -> j },
-                { i, j -> cellList[j][i] },
+        moveUpLeftTemplate({ i, j -> cellList[j][i] },
                 { innerCycle -> (innerCycle > 0) }) { innerCycle, externalCycle ->
             val shiftCell = cellList[innerCycle - 1][externalCycle]
             val currentCell = cellList[innerCycle][externalCycle]
@@ -146,8 +144,7 @@ class RenderService(private val size: Int,
     }
 
     fun moveDown(): Int {
-        moveDownRightTemplate({ _, j -> j },
-                { i, j -> cellList[j][i] },
+        moveDownRightTemplate({ i, j -> cellList[j][i] },
                 { innerCycle -> (innerCycle + 1) < size }) { innerCycle, externalCycle ->
             val shiftCell = cellList[innerCycle + 1][externalCycle]
             val currentCell = cellList[innerCycle][externalCycle]
@@ -169,8 +166,7 @@ class RenderService(private val size: Int,
     }
 
     fun moveRight(): Int {
-        moveDownRightTemplate({ _, j -> j },
-                { i, j -> cellList[i][j] },
+        moveDownRightTemplate({ i, j -> cellList[i][j] },
                 { innerCycle -> (innerCycle + 1) < size }) { innerCycle, externalCycle ->
             val shiftCell = cellList[externalCycle][innerCycle + 1]
             val currentCell = cellList[externalCycle][innerCycle]
@@ -201,13 +197,12 @@ class RenderService(private val size: Int,
         return freeCell
     }
 
-    private fun moveUpLeftTemplate(blockCycle: (i: Int, j: Int) -> Int,
-                                   startWhilePredicate: (i: Int, j: Int) -> Cell,
+    private fun moveUpLeftTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
                                    whilePredicate: (innerCycle: Int) -> Boolean,
                                    blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
         for (i in 0..(size - 1)) {
             for (j in 1..(size - 1)) {
-                var temp = blockCycle.invoke(i, j)
+                var temp = j
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
                         if (blockWhile.invoke(temp, i)) temp--
@@ -218,13 +213,12 @@ class RenderService(private val size: Int,
         }
     }
 
-    private fun moveDownRightTemplate(blockCycle: (i: Int, j: Int) -> Int,
-                                      startWhilePredicate: (i: Int, j: Int) -> Cell,
+    private fun moveDownRightTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
                                       whilePredicate: (innerCycle: Int) -> Boolean,
                                       blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
         for (i in 0..(size - 1)) {
             for (j in (size - 1) downTo 0) {
-                var temp = blockCycle.invoke(i, j)
+                var temp = j
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
                         if (blockWhile.invoke(temp, i)) temp++
