@@ -1,5 +1,6 @@
 package domain
 
+import data.CacheModel
 import data.Cell
 import data.LiveData
 import data.RenderServiceConfig
@@ -13,14 +14,21 @@ object RenderService {
 
     lateinit var config: RenderServiceConfig
     private var cellList = mutableListOf(mutableListOf<Cell>())
-    private var score = 0
-    val freeCellObservable = LiveData<Boolean>()
+    val scoreObservable = LiveData(0)
+    val freeCellObservable = LiveData(true)
+    val lastState = LiveData<CacheModel>()
 
     fun reset() {
-        score = 0
+        scoreObservable.setValue(0)
         freeCellObservable.setValue(true)
         config.context.clearRect(0.0, 0.0, 500.0, 500.0)
         cellList.clear()
+    }
+
+    fun restoreState(cacheModel: CacheModel) {
+        scoreObservable.setValue(cacheModel.score)
+        freeCellObservable.setValue(true)
+        cellList = cacheModel.cellList
     }
 
     fun drawAllCells() {
@@ -83,12 +91,7 @@ object RenderService {
     }
 
     fun pasteNewCell() {
-        val freeCell = calculFreeCell()
-
-        if (freeCell == 0) {
-            freeCellObservable.setValue(false)
-            return
-        }
+        if (freeCellObservable.getValue() == false) return
 
         while (true) {
             val row = floor(Math.random() * config.size).toInt()
@@ -102,7 +105,11 @@ object RenderService {
         }
     }
 
-    fun moveLeft(): Int {
+    private fun shallowCopyCellList(): MutableList<MutableList<Cell>> {
+        return cellList.map { it.map { Cell(it.x, it.y, it.value) }.toMutableList() }.toMutableList()
+    }
+
+    fun moveLeft() {
         moveUpLeftTemplate({ i, j -> cellList[i][j] },
                 { innerCycle -> (innerCycle - 1) >= 0 }) { innerCycle, externalCycle ->
             val shiftCell = cellList[externalCycle][innerCycle - 1]
@@ -113,19 +120,16 @@ object RenderService {
                 return@moveUpLeftTemplate true
             } else if (currentCell.value == shiftCell.value) {
                 shiftCell.value *= 2
-                score += shiftCell.value
+                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
                 return@moveUpLeftTemplate false
             } else {
                 return@moveUpLeftTemplate false
             }
         }
-
-        pasteNewCell()
-        return score
     }
 
-    fun moveUp(): Int {
+    fun moveUp() {
         moveUpLeftTemplate({ i, j -> cellList[j][i] },
                 { innerCycle -> (innerCycle > 0) }) { innerCycle, externalCycle ->
             val shiftCell = cellList[innerCycle - 1][externalCycle]
@@ -137,18 +141,16 @@ object RenderService {
                 return@moveUpLeftTemplate true
             } else if (shiftCell.value == currentCell.value) {
                 shiftCell.value *= 2
-                score += shiftCell.value
+                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
                 return@moveUpLeftTemplate false
             } else {
                 return@moveUpLeftTemplate false
             }
         }
-        pasteNewCell()
-        return score
     }
 
-    fun moveDown(): Int {
+    fun moveDown() {
         moveDownRightTemplate({ i, j -> cellList[j][i] },
                 { innerCycle -> (innerCycle + 1) < config.size }) { innerCycle, externalCycle ->
             val shiftCell = cellList[innerCycle + 1][externalCycle]
@@ -159,18 +161,16 @@ object RenderService {
                 return@moveDownRightTemplate true
             } else if (shiftCell.value == currentCell.value) {
                 shiftCell.value *= 2
-                score += shiftCell.value
+                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
                 return@moveDownRightTemplate false
             } else {
                 return@moveDownRightTemplate false
             }
         }
-        pasteNewCell()
-        return score
     }
 
-    fun moveRight(): Int {
+    fun moveRight() {
         moveDownRightTemplate({ i, j -> cellList[i][j] },
                 { innerCycle -> (innerCycle + 1) < config.size }) { innerCycle, externalCycle ->
             val shiftCell = cellList[externalCycle][innerCycle + 1]
@@ -181,15 +181,13 @@ object RenderService {
                 return@moveDownRightTemplate true
             } else if (currentCell.value == shiftCell.value) {
                 shiftCell.value *= 2
-                score += shiftCell.value
+                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
                 return@moveDownRightTemplate false
             } else {
                 return@moveDownRightTemplate false
             }
         }
-        pasteNewCell()
-        return score
     }
 
     private fun calculFreeCell(): Int {
@@ -216,6 +214,10 @@ object RenderService {
                 }
             }
         }
+
+        freeCellObservable.setValue(calculFreeCell() != 0)
+        if (freeCellObservable.getValue() == true) lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        pasteNewCell()
     }
 
     private fun moveDownRightTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
@@ -232,5 +234,9 @@ object RenderService {
                 }
             }
         }
+
+        freeCellObservable.setValue(calculFreeCell() != 0)
+        if (freeCellObservable.getValue() == true) lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        pasteNewCell()
     }
 }

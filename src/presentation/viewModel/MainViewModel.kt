@@ -28,8 +28,8 @@ class MainViewModel(size: Int,
 
         actionObservable.observe {
             if (!loseObservable.getValue()!!) {
-                val score = interactor.actionMove(it)
-                scoreObservable.setValue(score)
+                interactor.actionMove(it)
+//                scoreObservable.setValue(score)
             }
         }
 
@@ -38,10 +38,18 @@ class MainViewModel(size: Int,
             else loseObservable.setValue(false)
         }
 
+        RenderService.scoreObservable.observe {
+            scoreObservable.setValue(it)
+        }
+
         interactor.startGame()
     }
 
     override fun onResize(size: Int, cellWidth: Int, cellHeight: Int, cellBorder: Int, context: CanvasRenderingContext2D) {
         interactor.resize(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context))
+    }
+
+    override fun undo() {
+        interactor.redraw()
     }
 }
