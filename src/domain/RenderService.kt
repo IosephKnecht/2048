@@ -156,9 +156,9 @@ class RenderService(private val size: Int,
                 shiftCell.value *= 2
                 score += shiftCell.value
                 currentCell.value = 0
-                return@moveDownRightTemplate true
+                return@moveDownRightTemplate false
             } else {
-                return@moveDownRightTemplate true
+                return@moveDownRightTemplate false
             }
         }
         pasteNewCell()
@@ -191,7 +191,7 @@ class RenderService(private val size: Int,
         var freeCell = 0
         cellList.forEach {
             it.forEach {
-                freeCell++
+                freeCell += if (it.value == 0) 1 else 0
             }
         }
         return freeCell
@@ -217,7 +217,7 @@ class RenderService(private val size: Int,
                                       whilePredicate: (innerCycle: Int) -> Boolean,
                                       blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
         for (i in 0..(size - 1)) {
-            for (j in (size - 1) downTo 0) {
+            for (j in (size - 2) downTo 0) {
                 var temp = j
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
