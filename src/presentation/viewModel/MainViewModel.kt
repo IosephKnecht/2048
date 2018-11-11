@@ -1,7 +1,7 @@
 package presentation.viewModel
 
 import data.LiveData
-import data.RendrerServiceConfig
+import data.RenderServiceConfig
 import domain.RenderService
 import org.w3c.dom.CanvasRenderingContext2D
 import presentation.MainContract
@@ -24,7 +24,7 @@ class MainViewModel(size: Int,
     init {
         interactor = MainInteractor()
 
-        RenderService.config = RendrerServiceConfig(size, cellWidth, cellHeight, cellBorder, context)
+        RenderService.config = RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context)
 
         actionObservable.observe {
             if (!loseObservable.getValue()!!) {
@@ -33,12 +33,15 @@ class MainViewModel(size: Int,
             }
         }
 
-        interactor.freeCellObservable.observe {
+        RenderService.freeCellObservable.observe {
             if (!it) loseObservable.setValue(true)
+            else loseObservable.setValue(false)
         }
 
         interactor.startGame()
     }
 
-
+    override fun onResize(size: Int, cellWidth: Int, cellHeight: Int, cellBorder: Int, context: CanvasRenderingContext2D) {
+        interactor.resize(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context))
+    }
 }

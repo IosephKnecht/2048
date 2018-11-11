@@ -2,9 +2,8 @@ package domain
 
 import data.Cell
 import data.LiveData
-import data.RendrerServiceConfig
+import data.RenderServiceConfig
 import org.w3c.dom.CENTER
-import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.CanvasTextAlign
 import kotlin.js.Math
 import kotlin.math.ceil
@@ -12,11 +11,17 @@ import kotlin.math.floor
 
 object RenderService {
 
-    lateinit var config: RendrerServiceConfig
+    lateinit var config: RenderServiceConfig
     private var cellList = mutableListOf(mutableListOf<Cell>())
     private var score = 0
-    val freeCellObservable = LiveData<Int>()
+    val freeCellObservable = LiveData<Boolean>()
 
+    fun reset() {
+        score = 0
+        freeCellObservable.setValue(true)
+        config.context.clearRect(0.0, 0.0, 500.0, 500.0)
+        cellList.clear()
+    }
 
     fun drawAllCells() {
         cellList.forEach {
@@ -81,7 +86,7 @@ object RenderService {
         val freeCell = calculFreeCell()
 
         if (freeCell == 0) {
-            freeCellObservable.setValue(0)
+            freeCellObservable.setValue(false)
             return
         }
 

@@ -1,7 +1,8 @@
 package presentation
 
-import data.LiveData
 import data.MutableLiveData
+import data.RenderServiceConfig
+import org.w3c.dom.CanvasRenderingContext2D
 
 interface MainContract {
     enum class Action {
@@ -13,9 +14,9 @@ interface MainContract {
     }
 
     interface Interactor {
-        val freeCellObservable: LiveData<Boolean>
         fun startGame()
         fun actionMove(action: Action): Int
+        fun resize(config: RenderServiceConfig)
     }
 
     interface ViewModel {
@@ -23,5 +24,11 @@ interface MainContract {
         val actionObservable: MutableLiveData<Action>
         val scoreObservable: MutableLiveData<Int>
         var state: State
+
+        fun onResize(size: Int,
+                     cellWidth: Int,
+                     cellHeight: Int,
+                     cellBorder: Int,
+                     context: CanvasRenderingContext2D)
     }
 }

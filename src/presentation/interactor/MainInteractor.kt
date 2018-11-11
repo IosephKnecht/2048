@@ -1,18 +1,11 @@
 package presentation.interactor
 
 import data.LiveData
+import data.RenderServiceConfig
 import domain.RenderService
 import presentation.MainContract
 
 class MainInteractor : MainContract.Interactor {
-
-    override val freeCellObservable = LiveData(true)
-
-    init {
-        RenderService.freeCellObservable.observe {
-            if (it == 0) freeCellObservable.setValue(false)
-        }
-    }
 
     override fun startGame() {
         RenderService.createCells()
@@ -27,5 +20,11 @@ class MainInteractor : MainContract.Interactor {
             MainContract.Action.LEFT -> RenderService.moveLeft()
             MainContract.Action.UP -> RenderService.moveUp()
         }
+    }
+
+    override fun resize(config: RenderServiceConfig) {
+        RenderService.reset()
+        RenderService.config = config
+        startGame()
     }
 }
