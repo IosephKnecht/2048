@@ -1,6 +1,7 @@
 package presentation.viewModel
 
 import data.LiveData
+import data.RendrerServiceConfig
 import domain.RenderService
 import org.w3c.dom.CanvasRenderingContext2D
 import presentation.MainContract
@@ -12,7 +13,6 @@ class MainViewModel(size: Int,
                     cellBorder: Int,
                     context: CanvasRenderingContext2D) : MainContract.ViewModel {
 
-    private val renderService = RenderService(size, cellWidth, cellHeight, cellBorder, context)
     private val interactor: MainContract.Interactor
 
     override val scoreObservable = LiveData<Int>()
@@ -22,7 +22,9 @@ class MainViewModel(size: Int,
     override var state = MainContract.State.IDLE
 
     init {
-        interactor = MainInteractor(renderService)
+        interactor = MainInteractor()
+
+        RenderService.config = RendrerServiceConfig(size, cellWidth, cellHeight, cellBorder, context)
 
         actionObservable.observe {
             if (!loseObservable.getValue()!!) {

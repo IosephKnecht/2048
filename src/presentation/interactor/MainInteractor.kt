@@ -4,28 +4,28 @@ import data.LiveData
 import domain.RenderService
 import presentation.MainContract
 
-class MainInteractor(private val renderService: RenderService) : MainContract.Interactor {
+class MainInteractor : MainContract.Interactor {
 
     override val freeCellObservable = LiveData(true)
 
     init {
-        renderService.freeCellObservable.observe {
+        RenderService.freeCellObservable.observe {
             if (it == 0) freeCellObservable.setValue(false)
         }
     }
 
     override fun startGame() {
-        renderService.createCells()
-        renderService.drawAllCells()
-        renderService.pasteNewCell()
+        RenderService.createCells()
+        RenderService.drawAllCells()
+        RenderService.pasteNewCell()
     }
 
     override fun actionMove(action: MainContract.Action): Int {
         return when (action) {
-            MainContract.Action.DOWN -> renderService.moveDown()
-            MainContract.Action.RIGHT -> renderService.moveRight()
-            MainContract.Action.LEFT -> renderService.moveLeft()
-            MainContract.Action.UP -> renderService.moveUp()
+            MainContract.Action.DOWN -> RenderService.moveDown()
+            MainContract.Action.RIGHT -> RenderService.moveRight()
+            MainContract.Action.LEFT -> RenderService.moveLeft()
+            MainContract.Action.UP -> RenderService.moveUp()
         }
     }
 }
