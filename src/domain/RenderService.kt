@@ -80,7 +80,7 @@ class RenderService(private val size: Int,
     fun pasteNewCell() {
         val freeCell = calculFreeCell()
 
-        if(freeCell == 0) {
+        if (freeCell == 0) {
             freeCellObservable.setValue(0)
             return
         }
@@ -97,26 +97,48 @@ class RenderService(private val size: Int,
         }
     }
 
+    fun moveLeft(): Int {
+        moveUpLeftTemplate({ _, j -> j },
+                { i, j -> cellList[i][j] },
+                { innerCycle -> (innerCycle - 1) >= 0 }) { innerCycle, externalCycle ->
+            val shiftCell = cellList[externalCycle][innerCycle - 1]
+            val currentCell = cellList[externalCycle][innerCycle]
+            if (shiftCell.value == 0) {
+                shiftCell.value = currentCell.value
+                currentCell.value = 0
+                return@moveUpLeftTemplate true
+            } else if (currentCell.value == shiftCell.value) {
+                shiftCell.value *= 2
+                score += shiftCell.value
+                currentCell.value = 0
+                return@moveUpLeftTemplate false
+            } else {
+                return@moveUpLeftTemplate false
+            }
+        }
+
+        pasteNewCell()
+        return score
+    }
+
     fun moveUp(): Int {
-        for (j in 0..(size - 1)) {
-            for (i in 1..(size - 1)) {
-                if (cellList[i][j].value != 0) {
-                    var row = i
-                    while (row > 0) {
-                        if (cellList[row - 1][j].value == 0) {
-                            cellList[row - 1][j].value = cellList[row][j].value
-                            cellList[row][j].value = 0
-                            row--
-                        } else if (cellList[row - 1][j].value == cellList[row][j].value) {
-                            cellList[row - 1][j].value *= 2
-                            score += cellList[row - 1][j].value
-                            cellList[row][j].value = 0
-                            break
-                        } else {
-                            break
-                        }
-                    }
-                }
+        moveUpLeftTemplate({ _, j -> j },
+                { i, j -> cellList[j][i] },
+                { innerCycle -> (innerCycle > 0) }) { innerCycle, externalCycle ->
+            val shiftCell = cellList[innerCycle - 1][externalCycle]
+            val currentCell = cellList[innerCycle][externalCycle]
+
+            if (shiftCell.value == 0) {
+                shiftCell.value = currentCell.value
+                currentCell.value = 0
+                return@moveUpLeftTemplate true
+            } else if (shiftCell.value == currentCell.value) {
+                shiftCell.value *= 2
+                score += shiftCell.value
+                currentCell.value = 0
+                return@moveUpLeftTemplate false
+            } else {
+                return@moveUpLeftTemplate false
             }
         }
         pasteNewCell()
@@ -129,40 +151,16 @@ class RenderService(private val size: Int,
                 if (cellList[i][j].value != 0) {
                     var row = i
                     while (row + 1 < size) {
-                        if (cellList[row + 1][j].value == 0) {
-                            cellList[row + 1][j].value = cellList[row][j].value
-                            cellList[row][j].value = 0
+                        val shiftCell = cellList[row + 1][j]
+                        val currentCell = cellList[row][j]
+                        if (shiftCell.value == 0) {
+                            shiftCell.value = currentCell.value
+                            currentCell.value = 0
                             row++
-                        } else if (cellList[row + 1][j].value == cellList[row][j].value) {
-                            cellList[row + 1][j].value *= 2
-                            score += cellList[row + 1][j].value
-                            cellList[row][j].value = 0
-                            break
-                        } else {
-                            break
-                        }
-                    }
-                }
-            }
-        }
-        pasteNewCell()
-        return score
-    }
-
-    fun moveLeft(): Int {
-        for (i in 0..(size - 1)) {
-            for (j in 1..(size - 1)) {
-                if (cellList[i][j].value != 0) {
-                    var coll = j
-                    while (coll - 1 >= 0) {
-                        if (cellList[i][coll - 1].value == 0) {
-                            cellList[i][coll - 1].value = cellList[i][coll].value
-                            cellList[i][coll].value = 0
-                            coll--
-                        } else if (cellList[i][coll].value == cellList[i][coll - 1].value) {
-                            cellList[i][coll - 1].value *= 2
-                            score += cellList[coll - 1][j].value
-                            cellList[i][coll].value = 0
+                        } else if (shiftCell.value == currentCell.value) {
+                            shiftCell.value *= 2
+                            score += shiftCell.value
+                            currentCell.value = 0
                             break
                         } else {
                             break
@@ -181,14 +179,16 @@ class RenderService(private val size: Int,
                 if (cellList[i][j].value != 0) {
                     var coll = j
                     while (coll + 1 < size) {
-                        if (cellList[i][coll + 1].value == 0) {
-                            cellList[i][coll + 1].value = cellList[i][coll].value
-                            cellList[i][coll].value = 0
+                        val shiftCell = cellList[i][coll + 1]
+                        val currentCell = cellList[i][coll]
+                        if (shiftCell.value == 0) {
+                            shiftCell.value = currentCell.value
+                            currentCell.value = 0
                             coll++
-                        } else if (cellList[i][coll].value == cellList[i][coll + 1].value) {
-                            cellList[i][coll + 1].value *= 2
-                            score += cellList[coll + 1][j].value
-                            cellList[i][coll].value = 0
+                        } else if (currentCell.value == shiftCell.value) {
+                            shiftCell.value *= 2
+                            score += shiftCell.value
+                            currentCell.value = 0
                             break
                         } else {
                             break
@@ -209,5 +209,22 @@ class RenderService(private val size: Int,
             }
         }
         return freeCell
+    }
+
+    private fun moveUpLeftTemplate(blockCycle: (i: Int, j: Int) -> Int,
+                                   startWhilePredicate: (i: Int, j: Int) -> Cell,
+                                   whilePredicate: (innerCycle: Int) -> Boolean,
+                                   blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
+        for (i in 0..(size - 1)) {
+            for (j in 1..(size - 1)) {
+                var temp = blockCycle.invoke(i, j)
+                if (startWhilePredicate.invoke(i, j).value != 0) {
+                    while (whilePredicate.invoke(temp)) {
+                        if (blockWhile.invoke(temp, i)) temp--
+                        else break
+                    }
+                }
+            }
+        }
     }
 }
