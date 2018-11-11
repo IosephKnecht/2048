@@ -1,5 +1,6 @@
 package presentation
 
+import data.Cell
 import data.MutableLiveData
 import data.RenderServiceConfig
 import org.w3c.dom.CanvasRenderingContext2D
@@ -15,8 +16,9 @@ interface MainContract {
 
     interface Interactor {
         fun startGame()
-        fun actionMove(action: Action): Int
+        fun actionMove(action: Action)
         fun resize(config: RenderServiceConfig)
+        fun redraw()
     }
 
     interface ViewModel {
@@ -30,5 +32,6 @@ interface MainContract {
                      cellHeight: Int,
                      cellBorder: Int,
                      context: CanvasRenderingContext2D)
+        fun undo()
     }
 }

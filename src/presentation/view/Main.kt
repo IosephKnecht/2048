@@ -17,6 +17,7 @@ fun main(args: Array<String>) {
     val sizeInput = document.getElementById("size")!! as HTMLInputElement
     val changeSize = document.getElementById("change_size")!! as HTMLInputElement
     val scoreLabel = document.getElementById("score")!!
+    val backArrow = document.getElementById("back_arrow")!! as HTMLImageElement
 
     val size = 4
     val cellWidth = canvas.width / size - 6
@@ -35,6 +36,10 @@ fun main(args: Array<String>) {
             val newCellWidth = canvas.width / value - 6
             viewModel.onResize(value, newCellWidth, newCellWidth, cellBorder, context)
         }
+    }
+
+    backArrow.onclick = {
+        viewModel.undo()
     }
 
     viewModel.scoreObservable.observe {

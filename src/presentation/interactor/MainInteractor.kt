@@ -1,11 +1,19 @@
 package presentation.interactor
 
-import data.LiveData
+import data.CacheModel
 import data.RenderServiceConfig
 import domain.RenderService
 import presentation.MainContract
 
 class MainInteractor : MainContract.Interactor {
+
+    private var cacheModel: CacheModel? = null
+
+    init {
+        RenderService.lastState.observe {
+            cacheModel = it
+        }
+    }
 
     override fun startGame() {
         RenderService.createCells()
@@ -13,7 +21,7 @@ class MainInteractor : MainContract.Interactor {
         RenderService.pasteNewCell()
     }
 
-    override fun actionMove(action: MainContract.Action): Int {
+    override fun actionMove(action: MainContract.Action) {
         return when (action) {
             MainContract.Action.DOWN -> RenderService.moveDown()
             MainContract.Action.RIGHT -> RenderService.moveRight()
@@ -26,5 +34,12 @@ class MainInteractor : MainContract.Interactor {
         RenderService.reset()
         RenderService.config = config
         startGame()
+    }
+
+    override fun redraw() {
+        cacheModel?.let {
+            RenderService.restoreState(it)
+            RenderService.drawAllCells()
+        }
     }
 }
