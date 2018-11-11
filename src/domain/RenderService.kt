@@ -146,27 +146,22 @@ class RenderService(private val size: Int,
     }
 
     fun moveDown(): Int {
-        for (j in 0..(size - 1)) {
-            for (i in (size - 1) downTo 0) {
-                if (cellList[i][j].value != 0) {
-                    var row = i
-                    while (row + 1 < size) {
-                        val shiftCell = cellList[row + 1][j]
-                        val currentCell = cellList[row][j]
-                        if (shiftCell.value == 0) {
-                            shiftCell.value = currentCell.value
-                            currentCell.value = 0
-                            row++
-                        } else if (shiftCell.value == currentCell.value) {
-                            shiftCell.value *= 2
-                            score += shiftCell.value
-                            currentCell.value = 0
-                            break
-                        } else {
-                            break
-                        }
-                    }
-                }
+        moveDownRightTemplate({ _, j -> j },
+                { i, j -> cellList[j][i] },
+                { innerCycle -> (innerCycle + 1) < size }) { innerCycle, externalCycle ->
+            val shiftCell = cellList[innerCycle + 1][externalCycle]
+            val currentCell = cellList[innerCycle][externalCycle]
+            if (shiftCell.value == 0) {
+                shiftCell.value = currentCell.value
+                currentCell.value = 0
+                return@moveDownRightTemplate true
+            } else if (shiftCell.value == currentCell.value) {
+                shiftCell.value *= 2
+                score += shiftCell.value
+                currentCell.value = 0
+                return@moveDownRightTemplate true
+            } else {
+                return@moveDownRightTemplate true
             }
         }
         pasteNewCell()
@@ -174,27 +169,22 @@ class RenderService(private val size: Int,
     }
 
     fun moveRight(): Int {
-        for (i in 0..(size - 1)) {
-            for (j in (size - 1) downTo 0) {
-                if (cellList[i][j].value != 0) {
-                    var coll = j
-                    while (coll + 1 < size) {
-                        val shiftCell = cellList[i][coll + 1]
-                        val currentCell = cellList[i][coll]
-                        if (shiftCell.value == 0) {
-                            shiftCell.value = currentCell.value
-                            currentCell.value = 0
-                            coll++
-                        } else if (currentCell.value == shiftCell.value) {
-                            shiftCell.value *= 2
-                            score += shiftCell.value
-                            currentCell.value = 0
-                            break
-                        } else {
-                            break
-                        }
-                    }
-                }
+        moveDownRightTemplate({ _, j -> j },
+                { i, j -> cellList[i][j] },
+                { innerCycle -> (innerCycle + 1) < size }) { innerCycle, externalCycle ->
+            val shiftCell = cellList[externalCycle][innerCycle + 1]
+            val currentCell = cellList[externalCycle][innerCycle]
+            if (shiftCell.value == 0) {
+                shiftCell.value = currentCell.value
+                currentCell.value = 0
+                return@moveDownRightTemplate true
+            } else if (currentCell.value == shiftCell.value) {
+                shiftCell.value *= 2
+                score += shiftCell.value
+                currentCell.value = 0
+                return@moveDownRightTemplate false
+            } else {
+                return@moveDownRightTemplate false
             }
         }
         pasteNewCell()
@@ -221,6 +211,23 @@ class RenderService(private val size: Int,
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
                         if (blockWhile.invoke(temp, i)) temp--
+                        else break
+                    }
+                }
+            }
+        }
+    }
+
+    private fun moveDownRightTemplate(blockCycle: (i: Int, j: Int) -> Int,
+                                      startWhilePredicate: (i: Int, j: Int) -> Cell,
+                                      whilePredicate: (innerCycle: Int) -> Boolean,
+                                      blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
+        for (i in 0..(size - 1)) {
+            for (j in (size - 1) downTo 0) {
+                var temp = blockCycle.invoke(i, j)
+                if (startWhilePredicate.invoke(i, j).value != 0) {
+                    while (whilePredicate.invoke(temp)) {
+                        if (blockWhile.invoke(temp, i)) temp++
                         else break
                     }
                 }
