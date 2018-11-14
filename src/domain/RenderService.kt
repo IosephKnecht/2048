@@ -6,6 +6,7 @@ import data.LiveData
 import data.RenderServiceConfig
 import org.w3c.dom.CENTER
 import org.w3c.dom.CanvasTextAlign
+import presentation.increment
 import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -120,7 +121,7 @@ object RenderService {
                 return@moveUpLeftTemplate true
             } else if (currentCell.value == shiftCell.value) {
                 shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
+                scoreObservable.increment(shiftCell.value)
                 currentCell.value = 0
                 return@moveUpLeftTemplate false
             } else {
@@ -141,7 +142,7 @@ object RenderService {
                 return@moveUpLeftTemplate true
             } else if (shiftCell.value == currentCell.value) {
                 shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
+                scoreObservable.increment(shiftCell.value)
                 currentCell.value = 0
                 return@moveUpLeftTemplate false
             } else {
@@ -161,7 +162,7 @@ object RenderService {
                 return@moveDownRightTemplate true
             } else if (shiftCell.value == currentCell.value) {
                 shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
+                scoreObservable.increment(shiftCell.value)
                 currentCell.value = 0
                 return@moveDownRightTemplate false
             } else {
@@ -181,7 +182,7 @@ object RenderService {
                 return@moveDownRightTemplate true
             } else if (currentCell.value == shiftCell.value) {
                 shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
+                scoreObservable.increment(shiftCell.value)
                 currentCell.value = 0
                 return@moveDownRightTemplate false
             } else {

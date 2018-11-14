@@ -52,4 +52,14 @@ class MainViewModel(size: Int,
     override fun undo() {
         interactor.redraw()
     }
+
+    override fun reload() {
+        interactor.startGame()
+        reset()
+    }
+
+    private fun reset() {
+        scoreObservable.setValue(0)
+        loseObservable.setValue(false)
+    }
 }

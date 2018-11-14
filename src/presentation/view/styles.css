@@ -28,17 +28,29 @@ h1 {
     border-radius: 3px;
 }
 #canvas{
+    position: absolute;
     background-color: burlywood;
 }
-#canvas_block{
+#canvas_block {
     position: absolute;
     left: 550px;
     top: 150px;
 }
-#back_arrow{
+#back_arrow {
     width: 50px;
     height: 50px;
     position:absolute;
     left: 10px;
     top: 10px;
+}
+#lose_holder {
+    width: 500px;
+    height: 500px;
+    background: #4d4d4d;
+    visibility: visible;
+}
+#lose_holder.img {
+    background: red;
+    width: 50px;
+    height: 50px;
 }

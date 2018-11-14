@@ -1,6 +1,5 @@
 package presentation
 
-import data.Cell
 import data.MutableLiveData
 import data.RenderServiceConfig
 import org.w3c.dom.CanvasRenderingContext2D
@@ -32,6 +31,7 @@ interface MainContract {
                      cellHeight: Int,
                      cellBorder: Int,
                      context: CanvasRenderingContext2D)
+        fun reload()
         fun undo()
     }
 }

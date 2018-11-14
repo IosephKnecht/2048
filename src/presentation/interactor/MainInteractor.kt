@@ -16,6 +16,7 @@ class MainInteractor : MainContract.Interactor {
     }
 
     override fun startGame() {
+        RenderService.reset()
         RenderService.createCells()
         RenderService.drawAllCells()
         RenderService.pasteNewCell()
