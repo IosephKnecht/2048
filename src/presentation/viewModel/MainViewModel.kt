@@ -2,7 +2,7 @@ package presentation.viewModel
 
 import data.LiveData
 import data.RenderServiceConfig
-import domain.RenderService
+import domain.RenderServiceImpl
 import org.w3c.dom.CanvasRenderingContext2D
 import presentation.MainContract
 import presentation.interactor.MainInteractor
@@ -24,21 +24,19 @@ class MainViewModel(size: Int,
     init {
         interactor = MainInteractor()
 
-        RenderService.config = RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context)
+        RenderServiceImpl.config = RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context)
 
         actionObservable.observe {
             if (!loseObservable.getValue()!!) {
                 interactor.actionMove(it)
-//                scoreObservable.setValue(score)
             }
         }
 
-        RenderService.freeCellObservable.observe {
-            if (!it) loseObservable.setValue(true)
-            else loseObservable.setValue(false)
+        RenderServiceImpl.changeListObservable.observe {
+            loseObservable.setValue(!interactor.hasMoreMove(it))
         }
 
-        RenderService.scoreObservable.observe {
+        RenderServiceImpl.scoreObservable.observe {
             scoreObservable.setValue(it)
         }
 
@@ -50,6 +48,7 @@ class MainViewModel(size: Int,
     }
 
     override fun undo() {
+        loseObservable.setValue(false)
         interactor.redraw()
     }
 }
