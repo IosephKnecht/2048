@@ -18,8 +18,9 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
     //region RenderService
     override fun reset() {
         scoreObservable.setValue(0)
-        // FIXME: get with and height from context
-        config.context.clearRect(0.0, 0.0, 500.0, 500.0)
+        config.context.apply {
+            clearRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
+        }
         cellList.clear()
     }
 
