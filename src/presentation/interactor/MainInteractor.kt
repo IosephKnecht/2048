@@ -2,7 +2,7 @@ package presentation.interactor
 
 import data.CacheModel
 import data.RenderServiceConfig
-import domain.RenderService
+import domain.RenderServiceImpl
 import presentation.MainContract
 
 class MainInteractor : MainContract.Interactor {
@@ -10,36 +10,36 @@ class MainInteractor : MainContract.Interactor {
     private var cacheModel: CacheModel? = null
 
     init {
-        RenderService.lastState.observe {
+        RenderServiceImpl.lastState.observe {
             cacheModel = it
         }
     }
 
     override fun startGame() {
-        RenderService.createCells()
-        RenderService.drawAllCells()
-        RenderService.pasteNewCell()
+        RenderServiceImpl.createCells()
+        RenderServiceImpl.drawAllCells()
+        RenderServiceImpl.pasteNewCell()
     }
 
     override fun actionMove(action: MainContract.Action) {
         return when (action) {
-            MainContract.Action.DOWN -> RenderService.moveDown()
-            MainContract.Action.RIGHT -> RenderService.moveRight()
-            MainContract.Action.LEFT -> RenderService.moveLeft()
-            MainContract.Action.UP -> RenderService.moveUp()
+            MainContract.Action.DOWN -> RenderServiceImpl.moveDown()
+            MainContract.Action.RIGHT -> RenderServiceImpl.moveRight()
+            MainContract.Action.LEFT -> RenderServiceImpl.moveLeft()
+            MainContract.Action.UP -> RenderServiceImpl.moveUp()
         }
     }
 
     override fun resize(config: RenderServiceConfig) {
-        RenderService.reset()
-        RenderService.config = config
+        RenderServiceImpl.reset()
+        RenderServiceImpl.config = config
         startGame()
     }
 
     override fun redraw() {
         cacheModel?.let {
-            RenderService.restoreState(it)
-            RenderService.drawAllCells()
+            RenderServiceImpl.restoreState(it)
+            RenderServiceImpl.drawAllCells()
         }
     }
 }
