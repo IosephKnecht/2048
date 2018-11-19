@@ -171,9 +171,8 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         if (freCellValue != 0) {
             lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
             pasteNewCell()
+            changeListObservable.setValue(cellList)
         }
-
-        changeListObservable.setValue(cellList)
     }
 
     private fun moveDownRightTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
@@ -196,9 +195,8 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         if (freCellValue != 0) {
             lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
             pasteNewCell()
+            changeListObservable.setValue(cellList)
         }
-
-        changeListObservable.setValue(cellList)
     }
 
     private fun shallowCopyCellList(): MutableList<MutableList<Cell>> {
