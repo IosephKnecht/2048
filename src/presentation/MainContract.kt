@@ -18,6 +18,7 @@ interface MainContract {
         fun startGame()
         fun actionMove(action: Action)
         fun resize(config: RenderServiceConfig)
+        fun hasMoreMove(list: List<List<Cell>>): Boolean
         fun redraw()
     }
 
@@ -32,6 +33,7 @@ interface MainContract {
                      cellHeight: Int,
                      cellBorder: Int,
                      context: CanvasRenderingContext2D)
+
         fun undo()
     }
 }

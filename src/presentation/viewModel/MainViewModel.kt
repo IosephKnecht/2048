@@ -29,13 +29,11 @@ class MainViewModel(size: Int,
         actionObservable.observe {
             if (!loseObservable.getValue()!!) {
                 interactor.actionMove(it)
-//                scoreObservable.setValue(score)
             }
         }
 
-        RenderServiceImpl.freeCellObservable.observe {
-            if (!it) loseObservable.setValue(true)
-            else loseObservable.setValue(false)
+        RenderServiceImpl.changeListObservable.observe {
+            loseObservable.setValue(!interactor.hasMoreMove(it))
         }
 
         RenderServiceImpl.scoreObservable.observe {
@@ -50,6 +48,7 @@ class MainViewModel(size: Int,
     }
 
     override fun undo() {
+        loseObservable.setValue(false)
         interactor.redraw()
     }
 }

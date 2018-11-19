@@ -1,9 +1,6 @@
 package domain
 
-import data.CacheModel
-import data.Cell
-import data.LiveData
-import data.RenderServiceConfig
+import data.*
 import org.w3c.dom.CENTER
 import org.w3c.dom.CanvasTextAlign
 import kotlin.js.Math
@@ -13,22 +10,21 @@ import kotlin.math.floor
 object RenderServiceImpl : RenderService, Transformer {
 
     lateinit var config: RenderServiceConfig
-    private var cellList = mutableListOf(mutableListOf<Cell>())
+    private var cellList = mutableListOf<MutableList<Cell>>()
     val scoreObservable = LiveData(0)
-    val freeCellObservable = LiveData(true)
     val lastState = LiveData<CacheModel>()
+    val changeListObservable: MutableLiveData<List<List<Cell>>> = LiveData()
 
     //region RenderService
     override fun reset() {
         scoreObservable.setValue(0)
-        freeCellObservable.setValue(true)
+        // FIXME: get with and height from context
         config.context.clearRect(0.0, 0.0, 500.0, 500.0)
         cellList.clear()
     }
 
     override fun restoreState(cacheModel: CacheModel) {
         scoreObservable.setValue(cacheModel.score)
-        freeCellObservable.setValue(true)
         cellList = cacheModel.cellList
     }
 
@@ -42,14 +38,12 @@ object RenderServiceImpl : RenderService, Transformer {
         for (i in 0..(config.size - 1)) {
             cellList.add(mutableListOf())
             for (j in 0..(config.size - 1)) {
-                cellList[i].add(createEmtyCell(i, j))
+                cellList[i].add(createEmptyCell(i, j))
             }
         }
     }
 
     override fun pasteNewCell() {
-        if (freeCellObservable.getValue() == false) return
-
         while (true) {
             val row = floor(Math.random() * config.size).toInt()
             val coll = floor(Math.random() * config.size).toInt()
@@ -171,9 +165,14 @@ object RenderServiceImpl : RenderService, Transformer {
             }
         }
 
-        freeCellObservable.setValue(calculFreeCell() != 0)
-        if (freeCellObservable.getValue() == true) lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        pasteNewCell()
+        val freCellValue = calculFreeCell()
+
+        if (freCellValue != 0) {
+            lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+            pasteNewCell()
+        }
+
+        changeListObservable.setValue(cellList)
     }
 
     private fun moveDownRightTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
@@ -191,9 +190,14 @@ object RenderServiceImpl : RenderService, Transformer {
             }
         }
 
-        freeCellObservable.setValue(calculFreeCell() != 0)
-        if (freeCellObservable.getValue() == true) lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        pasteNewCell()
+        val freCellValue = calculFreeCell()
+
+        if (freCellValue != 0) {
+            lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+            pasteNewCell()
+        }
+
+        changeListObservable.setValue(cellList)
     }
 
     private fun shallowCopyCellList(): MutableList<MutableList<Cell>> {
@@ -229,7 +233,7 @@ object RenderServiceImpl : RenderService, Transformer {
             context.fill()
 
             if (cell.value != 0) {
-                val fontSize = cellWidth / 2
+                val fontSize = cellWidth / 2f
                 context.font = "${fontSize}px Arial"
                 context.fillStyle = "white"
                 context.textAlign = CanvasTextAlign.CENTER
@@ -237,7 +241,8 @@ object RenderServiceImpl : RenderService, Transformer {
             }
         }
     }
-    private fun createEmtyCell(row: Int, coll: Int): Cell {
+
+    private fun createEmptyCell(row: Int, coll: Int): Cell {
         val x = coll * config.cellWidth + 5 * (coll + 1)
         val y = row * config.cellHeight + 5 * (row + 1)
         return Cell(x, y, 0)
