@@ -6,6 +6,7 @@ import org.w3c.dom.CanvasTextAlign
 import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
+import domain.Transformer.ActionMove
 
 object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
 
@@ -67,14 +68,14 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
             if (shiftCell.value == 0) {
                 shiftCell.value = currentCell.value
                 currentCell.value = 0
-                return@moveUpLeftTemplate true
+                return@moveUpLeftTemplate ActionMove.EMPTY_MOVE
             } else if (currentCell.value == shiftCell.value) {
                 shiftCell.value *= 2
                 scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
-                return@moveUpLeftTemplate false
+                return@moveUpLeftTemplate ActionMove.SUCCESS_MOVE
             } else {
-                return@moveUpLeftTemplate false
+                return@moveUpLeftTemplate ActionMove.FAILED_MOVE
             }
         }
     }
@@ -88,14 +89,14 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
             if (shiftCell.value == 0) {
                 shiftCell.value = currentCell.value
                 currentCell.value = 0
-                return@moveUpLeftTemplate true
+                return@moveUpLeftTemplate ActionMove.EMPTY_MOVE
             } else if (shiftCell.value == currentCell.value) {
                 shiftCell.value *= 2
                 scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
-                return@moveUpLeftTemplate false
+                return@moveUpLeftTemplate ActionMove.SUCCESS_MOVE
             } else {
-                return@moveUpLeftTemplate false
+                return@moveUpLeftTemplate ActionMove.FAILED_MOVE
             }
         }
     }
@@ -108,14 +109,14 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
             if (shiftCell.value == 0) {
                 shiftCell.value = currentCell.value
                 currentCell.value = 0
-                return@moveDownRightTemplate true
+                return@moveDownRightTemplate ActionMove.EMPTY_MOVE
             } else if (shiftCell.value == currentCell.value) {
                 shiftCell.value *= 2
                 scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
-                return@moveDownRightTemplate false
+                return@moveDownRightTemplate ActionMove.SUCCESS_MOVE
             } else {
-                return@moveDownRightTemplate false
+                return@moveDownRightTemplate ActionMove.FAILED_MOVE
             }
         }
     }
@@ -128,14 +129,14 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
             if (shiftCell.value == 0) {
                 shiftCell.value = currentCell.value
                 currentCell.value = 0
-                return@moveDownRightTemplate true
+                return@moveDownRightTemplate ActionMove.EMPTY_MOVE
             } else if (currentCell.value == shiftCell.value) {
                 shiftCell.value *= 2
                 scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
                 currentCell.value = 0
-                return@moveDownRightTemplate false
+                return@moveDownRightTemplate ActionMove.SUCCESS_MOVE
             } else {
-                return@moveDownRightTemplate false
+                return@moveDownRightTemplate ActionMove.FAILED_MOVE
             }
         }
     }
@@ -153,50 +154,48 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
 
     private fun moveUpLeftTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
                                    whilePredicate: (innerCycle: Int) -> Boolean,
-                                   blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
+                                   blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove) {
+        val actionMoveList = mutableListOf<ActionMove>()
+
         for (i in 0..(config.size - 1)) {
             for (j in 1..(config.size - 1)) {
                 var temp = j
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
-                        if (blockWhile.invoke(temp, i)) temp--
+                        val actionMove = blockWhile.invoke(temp, i)
+                        actionMoveList.add(actionMove)
+
+                        if (actionMove == ActionMove.EMPTY_MOVE) temp--
                         else break
                     }
                 }
             }
         }
 
-        val freCellValue = calculFreeCell()
-
-        if (freCellValue != 0) {
-            lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-            pasteNewCell()
-            changeListObservable.setValue(cellList)
-        }
+        moveSideEffect(actionMoveList)
     }
 
     private fun moveDownRightTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
                                       whilePredicate: (innerCycle: Int) -> Boolean,
-                                      blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
+                                      blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove) {
+        val actionMoveList = mutableListOf<ActionMove>()
+
         for (i in 0..(config.size - 1)) {
             for (j in (config.size - 2) downTo 0) {
                 var temp = j
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
-                        if (blockWhile.invoke(temp, i)) temp++
+                        val actionMove = blockWhile.invoke(temp, i)
+                        actionMoveList.add(actionMove)
+
+                        if (actionMove == ActionMove.EMPTY_MOVE) temp++
                         else break
                     }
                 }
             }
         }
 
-        val freCellValue = calculFreeCell()
-
-        if (freCellValue != 0) {
-            lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-            pasteNewCell()
-            changeListObservable.setValue(cellList)
-        }
+        moveSideEffect(actionMoveList)
     }
 
     private fun shallowCopyCellList(): MutableList<MutableList<Cell>> {
@@ -245,5 +244,24 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         val x = coll * config.cellWidth + 5 * (coll + 1)
         val y = row * config.cellHeight + 5 * (row + 1)
         return Cell(x, y, 0)
+    }
+
+    private fun moveSideEffect(actionMoveList: List<ActionMove>) {
+        val freeCellValue = calculFreeCell()
+
+        val idling = checkIdle(actionMoveList)
+
+        if (freeCellValue != 0 && !idling) {
+            lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+            pasteNewCell()
+            changeListObservable.setValue(cellList)
+        }
+    }
+
+    private fun checkIdle(actionMoveList: List<ActionMove>): Boolean {
+        actionMoveList.forEach {
+            if (it != ActionMove.FAILED_MOVE) return false
+        }
+        return true
     }
 }
