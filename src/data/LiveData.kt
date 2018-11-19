@@ -2,7 +2,7 @@ package data
 
 typealias Observer<T> = (T) -> Unit
 
-interface MutableLiveData<T> : ImmutableLiveData<T> {
+interface MutableLiveData<T> {
     fun setValue(value: T)
 }
 

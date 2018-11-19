@@ -1,8 +1,6 @@
 package presentation
 
-import data.Cell
-import data.MutableLiveData
-import data.RenderServiceConfig
+import data.*
 import org.w3c.dom.CanvasRenderingContext2D
 
 interface MainContract {
@@ -23,9 +21,9 @@ interface MainContract {
     }
 
     interface ViewModel {
-        val loseObservable: MutableLiveData<Boolean>
+        val loseObservable: ImmutableLiveData<Boolean>
         val actionObservable: MutableLiveData<Action>
-        val scoreObservable: MutableLiveData<Int>
+        val scoreObservable: ImmutableLiveData<Int>
         var state: State
 
         fun onResize(size: Int,

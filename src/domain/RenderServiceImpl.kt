@@ -7,13 +7,13 @@ import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
 
-object RenderServiceImpl : RenderService, Transformer {
+object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
 
     lateinit var config: RenderServiceConfig
     private var cellList = mutableListOf<MutableList<Cell>>()
-    val scoreObservable = LiveData(0)
-    val lastState = LiveData<CacheModel>()
-    val changeListObservable: MutableLiveData<List<List<Cell>>> = LiveData()
+    override val scoreObservable = LiveData(0)
+    override val lastStateObservable = LiveData<CacheModel>()
+    override val changeListObservable = LiveData<List<List<Cell>>>()
 
     //region RenderService
     override fun reset() {
@@ -168,7 +168,7 @@ object RenderServiceImpl : RenderService, Transformer {
         val freCellValue = calculFreeCell()
 
         if (freCellValue != 0) {
-            lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+            lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
             pasteNewCell()
         }
 
@@ -193,7 +193,7 @@ object RenderServiceImpl : RenderService, Transformer {
         val freCellValue = calculFreeCell()
 
         if (freCellValue != 0) {
-            lastState.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+            lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
             pasteNewCell()
         }
 

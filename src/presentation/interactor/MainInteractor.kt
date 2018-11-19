@@ -11,7 +11,7 @@ class MainInteractor : MainContract.Interactor {
     private var cacheModel: CacheModel? = null
 
     init {
-        RenderServiceImpl.lastState.observe {
+        RenderServiceImpl.lastStateObservable.observe {
             cacheModel = it
         }
     }
@@ -57,7 +57,9 @@ class MainInteractor : MainContract.Interactor {
                 val currentCell = list[i][j]
                 val nextCell = list[i][j + 1]
 
-                if (nextCell.value == 0 || currentCell.value == nextCell.value) return true
+                if (currentCell.value == 0 ||
+                        nextCell.value == 0 ||
+                        currentCell.value == nextCell.value) return true
             }
         }
         return false
@@ -70,7 +72,9 @@ class MainInteractor : MainContract.Interactor {
                 val currentCell = list[j][i]
                 val nextCell = list[j + 1][i]
 
-                if (nextCell.value == 0 || currentCell.value == nextCell.value) return true
+                if (currentCell.value == 0 ||
+                        nextCell.value == 0 ||
+                        currentCell.value == nextCell.value) return true
             }
         }
         return false
