@@ -17,6 +17,7 @@ class MainInteractor : MainContract.Interactor {
     }
 
     override fun startGame() {
+        RenderServiceImpl.reset()
         RenderServiceImpl.createCells()
         RenderServiceImpl.drawAllCells()
         RenderServiceImpl.pasteNewCell()
@@ -47,6 +48,7 @@ class MainInteractor : MainContract.Interactor {
         cacheModel?.let {
             RenderServiceImpl.restoreState(it)
             RenderServiceImpl.drawAllCells()
+            cacheModel = null
         }
     }
 

@@ -1,5 +1,6 @@
 package presentation
 
+import data.LiveData
 import kotlin.browser.window
 
 
@@ -40,4 +41,8 @@ class Throttle {
             timer = window.setTimeout(onComplete, timeout)
         }
     }
+}
+
+fun LiveData<Int>.increment(value: Int) {
+    setValue(getValue()?.run { this + value } ?: value)
 }
