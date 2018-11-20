@@ -156,6 +156,7 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
                                    whilePredicate: (innerCycle: Int) -> Boolean,
                                    blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove) {
         val actionMoveList = mutableListOf<ActionMove>()
+        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
 
         for (i in 0..(config.size - 1)) {
             for (j in 1..(config.size - 1)) {
@@ -179,6 +180,7 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
                                       whilePredicate: (innerCycle: Int) -> Boolean,
                                       blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove) {
         val actionMoveList = mutableListOf<ActionMove>()
+        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
 
         for (i in 0..(config.size - 1)) {
             for (j in (config.size - 2) downTo 0) {
@@ -212,15 +214,15 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
                     cellHeight.toDouble())
 
             when (cell.value) {
-                0 -> context.fillStyle = "#FFD300"
-                2 -> context.fillStyle = "#E52B50"
-                4 -> context.fillStyle = "#FFBF00"
-                8 -> context.fillStyle = "#FF033E"
+                0 -> context.fillStyle = "#F3F35F"
+                2 -> context.fillStyle = "#488281"
+                4 -> context.fillStyle = "#C46B3E"
+                8 -> context.fillStyle = "#FF4949"
                 16 -> context.fillStyle = "#9966CC"
-                32 -> context.fillStyle = "#F2F3F4"
+                32 -> context.fillStyle = "#5FACF3"
                 64 -> context.fillStyle = "#8DB600"
                 128 -> context.fillStyle = "#7BA05B"
-                256 -> context.fillStyle = "#00FFFF"
+                256 -> context.fillStyle = "#00D3B5"
                 512 -> context.fillStyle = "#7FFFD4"
                 1024 -> context.fillStyle = "#4B5320"
                 2048 -> context.fillStyle = "#3B444B"
@@ -252,7 +254,6 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         val idling = checkIdle(actionMoveList)
 
         if (freeCellValue != 0 && !idling) {
-            lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
             pasteNewCell()
             changeListObservable.setValue(cellList)
         }

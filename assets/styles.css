@@ -1,12 +1,30 @@
 body {
+	position:relative;
     background-color: darkgoldenrod;
+	background-image: url("img/background.jpg");
+	min-width:620px;
+	width: auto !important;
+	width:620px;     
 }
+#main {
+	background: #E1E1E1;
+	margin: 0 auto;
+	width:610px;
+	height:610px;
+	min-width: 610px;
+	min-height: 610px;
+	border:3px solid #6174B2;
+	position:relative;
+}
+
 p {
-    color: antiquewhite;
+    color: #000;
     font-size: 20px;
 }
 h1 {
     text-align: center;
+	font-size: 30px;
+	
 }
 #score {
     text-align: center;
@@ -19,6 +37,7 @@ h1 {
     padding-left: 50%;
 }
 #size_title {
+	color:#456646;
     float:left;
     margin-top: 0px;
 }
@@ -29,12 +48,13 @@ h1 {
 }
 #canvas{
     position: absolute;
-    background-color: burlywood;
+    background-color: #031654;
 }
 #canvas_block {
     position: absolute;
-    left: 550px;
-    top: 150px;
+	left: 50%;
+	top: 90%;
+	transform: translate(-50%,-90%);
 }
 #back_arrow {
     width: 50px;
@@ -44,13 +64,17 @@ h1 {
     top: 10px;
 }
 #lose_holder {
+	display:flex;
+	justify-content:center;
+	align-items:center;
     width: 500px;
     height: 500px;
     background: #4d4d4d;
     visibility: visible;
 }
-#lose_holder.img {
-    background: red;
-    width: 50px;
-    height: 50px;
+#lose_holder img {
+    padding:0 2%;
+    width: 20%;
+    height: 20%;
 }
+

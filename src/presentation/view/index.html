@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>2048</title>
-    <title>2048</title>
-    <link href="styles.css" rel="stylesheet">
+    <link href="../../assets/styles.css" rel="stylesheet">
 </head>
 <body>
+<div id="main">
 
-<h1>2048</h1>
-<p id="score"></p>
+	<h1>2048</h1>
+	<p id="score"></p>
 
-<div id="size_block">
-    <p id="size_title">Size :</p>
-    <input id="size" type="number" value="4">
-    <input id="change_size" type="button" value="OK">
-    <div id="clear0"></div>
+	<div id="size_block">
+		<p id="size_title">Size :</p>
+		<input id="size" type="number" value="4">
+		<input id="change_size" type="button" value="OK">
+		<div id="clear0"></div>
+	</div>
+
+	<img id="back_arrow" src="..\..\assets\img\go-back-arrow.png" alt="test" width="64px" height="64px">
+
+	<div id="canvas_block">
+
+		<canvas id="canvas" width="500px" height="500px"></canvas>
+
+		<div id="lose_holder">
+			<img id="close_button" src="..\..\assets\img\close_icon.png">
+			<img id="restart_button" src="..\..\assets\img\reload_icon.png">
+		</div>
+
+	</div>
 </div>
-
-<img id="back_arrow" src="..\..\assets\img\go-back-arrow.png" alt="test" width="64px" height="64px">
-
-<div id="canvas_block">
-
-    <canvas id="canvas" width="500px" height="500px"></canvas>
-
-    <div id="lose_holder">
-        <img id="restart_button" src="..\..\assets\img\reload_icon.png">
-        <img id="close_button" src="..\..\assets\img\close_icon.png">
-    </div>
-
-</div>
-
 <script src="../../out/production/2048/lib/kotlin.js"></script>
 <script src="../../out/production/2048/2048.js"></script>
 

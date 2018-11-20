@@ -78,10 +78,9 @@ fun main(args: Array<String>) {
 
 private fun onLoseChangeState(isLose: Boolean) {
     if (isLose) {
-        loseHolder.style.opacity = "0.1"
+        loseHolder.style.opacity = "0.85"
         loseHolder.style.visibility = "visible"
     } else {
-        loseHolder.style.opacity = "1"
         loseHolder.style.visibility = "hidden"
     }
 }
