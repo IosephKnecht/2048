@@ -1,8 +1,8 @@
 package data
 
-data class Cell(val x: Int,
-                val y: Int,
-                var value: Int = 0) {
+data class Cell(val x: Double,
+                val y: Double,
+                var value: Double = 0.0) {
 
     override fun equals(other: Any?): Boolean {
         val obj = other is Cell
@@ -16,9 +16,10 @@ data class Cell(val x: Int,
     }
 
     override fun hashCode(): Int {
-        var result = x
-        result = 31 * result + y
-        result = 31 * result + value
+        var result = x.hashCode()
+        result = 31 * result + y.hashCode()
+        result = 31 * result + value.hashCode()
         return result
     }
+
 }
