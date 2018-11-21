@@ -1,7 +1,7 @@
 package data
 
-data class Cell(val x: Double,
-                val y: Double,
+data class Cell(var x: Double,
+                var y: Double,
                 var value: Double = 0.0) {
 
     override fun equals(other: Any?): Boolean {

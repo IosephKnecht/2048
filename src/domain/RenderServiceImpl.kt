@@ -7,6 +7,8 @@ import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
 import domain.Transformer.ActionMove
+import presentation.clear
+import kotlin.browser.window
 
 object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
 
@@ -15,14 +17,26 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
     override val scoreObservable = LiveData(0)
     override val lastStateObservable = LiveData<CacheModel>()
     override val changeListObservable = LiveData<List<List<Cell>>>()
+    private var requestAnimationFrameValue: Int? = null
 
     //region RenderService
-    override fun reset() {
-        scoreObservable.setValue(0)
-        config.context.apply {
-            clearRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
-        }
-        cellList.clear()
+    override fun startRender() {
+        reset()
+        createCells()
+        requestAnimationFrameValue = window.requestAnimationFrame { animate.invoke() }
+        pasteNewCell()
+    }
+
+    override fun stopRender() {
+        window.cancelAnimationFrame(requestAnimationFrameValue!!)
+    }
+
+    override fun restartService() {
+        requestAnimationFrameValue?.let { window.cancelAnimationFrame(it) }
+
+        reset()
+
+        requestAnimationFrameValue = window.requestAnimationFrame { animate.invoke() }
     }
 
     override fun restoreState(cacheModel: CacheModel) {
@@ -30,13 +44,21 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         cellList = cacheModel.cellList
     }
 
-    override fun drawAllCells() {
+    private fun reset() {
+        scoreObservable.setValue(0)
+        config.context.apply {
+            clearRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
+        }
+        cellList.clear()
+    }
+
+    private fun drawAllCells() {
         cellList.forEach {
             it.forEach { cell -> drawCell(cell) }
         }
     }
 
-    override fun createCells() {
+    private fun createCells() {
         for (i in 0..(config.size - 1)) {
             cellList.add(mutableListOf())
             for (j in 0..(config.size - 1)) {
@@ -45,7 +67,7 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         }
     }
 
-    override fun pasteNewCell() {
+    private fun pasteNewCell() {
         while (true) {
             val row = floor(Math.random() * config.size).toInt()
             val coll = floor(Math.random() * config.size).toInt()
@@ -264,5 +286,10 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
             if (it != ActionMove.FAILED_MOVE) return false
         }
         return true
+    }
+
+    private val animate = {
+        config.context.clear()
+        drawAllCells()
     }
 }

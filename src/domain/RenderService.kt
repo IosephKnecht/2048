@@ -3,9 +3,8 @@ package domain
 import data.CacheModel
 
 interface RenderService {
-    fun drawAllCells()
-    fun createCells()
-    fun pasteNewCell()
+    fun startRender()
+    fun stopRender()
+    fun restartService()
     fun restoreState(cacheModel: CacheModel)
-    fun reset()
 }

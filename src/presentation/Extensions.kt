@@ -1,6 +1,7 @@
 package presentation
 
 import data.LiveData
+import org.w3c.dom.CanvasRenderingContext2D
 import kotlin.browser.window
 
 
@@ -45,4 +46,13 @@ class Throttle {
 
 fun LiveData<Int>.increment(value: Int) {
     setValue(getValue()?.run { this + value } ?: value)
+}
+
+fun CanvasRenderingContext2D.clear() {
+    canvas.apply {
+        clearRect(clientLeft.toDouble(),
+                clientTop.toDouble(),
+                width.toDouble(),
+                height.toDouble())
+    }
 }

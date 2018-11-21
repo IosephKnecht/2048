@@ -17,10 +17,7 @@ class MainInteractor : MainContract.Interactor {
     }
 
     override fun startGame() {
-        RenderServiceImpl.reset()
-        RenderServiceImpl.createCells()
-        RenderServiceImpl.drawAllCells()
-        RenderServiceImpl.pasteNewCell()
+        RenderServiceImpl.startRender()
     }
 
     override fun actionMove(action: MainContract.Action) {
@@ -33,7 +30,7 @@ class MainInteractor : MainContract.Interactor {
     }
 
     override fun resize(config: RenderServiceConfig) {
-        RenderServiceImpl.reset()
+        RenderServiceImpl.restartService()
         RenderServiceImpl.config = config
         startGame()
     }
@@ -47,7 +44,6 @@ class MainInteractor : MainContract.Interactor {
     override fun redraw() {
         cacheModel?.let {
             RenderServiceImpl.restoreState(it)
-            RenderServiceImpl.drawAllCells()
             cacheModel = null
         }
     }
@@ -59,8 +55,8 @@ class MainInteractor : MainContract.Interactor {
                 val currentCell = list[i][j]
                 val nextCell = list[i][j + 1]
 
-                if (currentCell.value == 0 ||
-                        nextCell.value == 0 ||
+                if (currentCell.value == 0.0 ||
+                        nextCell.value == 0.0 ||
                         currentCell.value == nextCell.value) return true
             }
         }
@@ -74,8 +70,8 @@ class MainInteractor : MainContract.Interactor {
                 val currentCell = list[j][i]
                 val nextCell = list[j + 1][i]
 
-                if (currentCell.value == 0 ||
-                        nextCell.value == 0 ||
+                if (currentCell.value == 0.0 ||
+                        nextCell.value == 0.0 ||
                         currentCell.value == nextCell.value) return true
             }
         }
