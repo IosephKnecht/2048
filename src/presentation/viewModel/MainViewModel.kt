@@ -8,9 +8,9 @@ import presentation.MainContract
 import presentation.interactor.MainInteractor
 
 class MainViewModel(size: Int,
-                    cellWidth: Int,
-                    cellHeight: Int,
-                    cellBorder: Int,
+                    cellWidth: Double,
+                    cellHeight: Double,
+                    cellBorder: Double,
                     context: CanvasRenderingContext2D) : MainContract.ViewModel {
 
     private val interactor: MainContract.Interactor
@@ -24,7 +24,7 @@ class MainViewModel(size: Int,
     init {
         interactor = MainInteractor()
 
-        RenderServiceImpl.config = RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context)
+        RenderServiceImpl.setRenderConfig(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context))
 
         actionObservable.observe {
             if (!loseObservable.getValue()!!) {
@@ -43,7 +43,7 @@ class MainViewModel(size: Int,
         interactor.startGame()
     }
 
-    override fun onResize(size: Int, cellWidth: Int, cellHeight: Int, cellBorder: Int, context: CanvasRenderingContext2D) {
+    override fun onResize(size: Int, cellWidth: Double, cellHeight: Double, cellBorder: Double, context: CanvasRenderingContext2D) {
         interactor.resize(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context))
     }
 

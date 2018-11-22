@@ -6,23 +6,40 @@ import org.w3c.dom.CanvasTextAlign
 import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
-import domain.Transformer.ActionMove
+import presentation.clear
+import kotlin.browser.window
+import domain.RenderServiceContract.Transformer.ActionMove
+import presentation.increment
 
-object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
+object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceContract.ObservableProvider {
 
-    lateinit var config: RenderServiceConfig
+    private lateinit var config: RenderServiceConfig
+    private lateinit var transformer: RenderServiceContract.Transformer
+
     private var cellList = mutableListOf<MutableList<Cell>>()
     override val scoreObservable = LiveData(0)
     override val lastStateObservable = LiveData<CacheModel>()
     override val changeListObservable = LiveData<List<List<Cell>>>()
+    private var requestAnimationFrameValue: Int? = null
 
     //region RenderService
-    override fun reset() {
-        scoreObservable.setValue(0)
-        config.context.apply {
-            clearRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
-        }
-        cellList.clear()
+    override fun startRender() {
+        reset()
+        createCells()
+        animate()
+        pasteNewCell()
+    }
+
+    override fun stopRender() {
+        window.cancelAnimationFrame(requestAnimationFrameValue!!)
+    }
+
+    override fun restartService() {
+        requestAnimationFrameValue?.let { window.cancelAnimationFrame(it) }
+
+        reset()
+
+        animate()
     }
 
     override fun restoreState(cacheModel: CacheModel) {
@@ -30,13 +47,28 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         cellList = cacheModel.cellList
     }
 
-    override fun drawAllCells() {
+    override fun setRenderConfig(config: RenderServiceConfig) {
+        this.config = config
+        transformer = TransformerImpl(config.size)
+
+        transformer.scoreChangedObservable.observe {
+            scoreObservable.increment(it)
+        }
+    }
+
+    private fun reset() {
+        scoreObservable.setValue(0)
+        config.context.clear()
+        cellList.clear()
+    }
+
+    private fun drawAllCells() {
         cellList.forEach {
             it.forEach { cell -> drawCell(cell) }
         }
     }
 
-    override fun createCells() {
+    private fun createCells() {
         for (i in 0..(config.size - 1)) {
             cellList.add(mutableListOf())
             for (j in 0..(config.size - 1)) {
@@ -45,14 +77,13 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         }
     }
 
-    override fun pasteNewCell() {
+    private fun pasteNewCell() {
         while (true) {
             val row = floor(Math.random() * config.size).toInt()
             val coll = floor(Math.random() * config.size).toInt()
 
             if (cellList[row][coll].value == 0) {
                 cellList[row][coll].value = 2 * ceil(Math.random() * 2).toInt()
-                drawAllCells()
                 return
             }
         }
@@ -61,84 +92,27 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
 
     //region Transformer
     override fun moveLeft() {
-        moveUpLeftTemplate({ i, j -> cellList[i][j] },
-                { innerCycle -> (innerCycle - 1) >= 0 }) { innerCycle, externalCycle ->
-            val shiftCell = cellList[externalCycle][innerCycle - 1]
-            val currentCell = cellList[externalCycle][innerCycle]
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveUpLeftTemplate ActionMove.EMPTY_MOVE
-            } else if (currentCell.value == shiftCell.value) {
-                shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
-                currentCell.value = 0
-                return@moveUpLeftTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveUpLeftTemplate ActionMove.FAILED_MOVE
-            }
-        }
+        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.moveLeft(cellList)
+        moveSideEffect(actionMoveList)
     }
 
     override fun moveUp() {
-        moveUpLeftTemplate({ i, j -> cellList[j][i] },
-                { innerCycle -> (innerCycle > 0) }) { innerCycle, externalCycle ->
-            val shiftCell = cellList[innerCycle - 1][externalCycle]
-            val currentCell = cellList[innerCycle][externalCycle]
-
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveUpLeftTemplate ActionMove.EMPTY_MOVE
-            } else if (shiftCell.value == currentCell.value) {
-                shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
-                currentCell.value = 0
-                return@moveUpLeftTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveUpLeftTemplate ActionMove.FAILED_MOVE
-            }
-        }
+        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.moveUp(cellList)
+        moveSideEffect(actionMoveList)
     }
 
     override fun moveDown() {
-        moveDownRightTemplate({ i, j -> cellList[j][i] },
-                { innerCycle -> (innerCycle + 1) < config.size }) { innerCycle, externalCycle ->
-            val shiftCell = cellList[innerCycle + 1][externalCycle]
-            val currentCell = cellList[innerCycle][externalCycle]
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveDownRightTemplate ActionMove.EMPTY_MOVE
-            } else if (shiftCell.value == currentCell.value) {
-                shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
-                currentCell.value = 0
-                return@moveDownRightTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveDownRightTemplate ActionMove.FAILED_MOVE
-            }
-        }
+        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.moveDown(cellList)
+        moveSideEffect(actionMoveList)
     }
 
     override fun moveRight() {
-        moveDownRightTemplate({ i, j -> cellList[i][j] },
-                { innerCycle -> (innerCycle + 1) < config.size }) { innerCycle, externalCycle ->
-            val shiftCell = cellList[externalCycle][innerCycle + 1]
-            val currentCell = cellList[externalCycle][innerCycle]
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveDownRightTemplate ActionMove.EMPTY_MOVE
-            } else if (currentCell.value == shiftCell.value) {
-                shiftCell.value *= 2
-                scoreObservable.setValue(scoreObservable.getValue()!! + shiftCell.value)
-                currentCell.value = 0
-                return@moveDownRightTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveDownRightTemplate ActionMove.FAILED_MOVE
-            }
-        }
+        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.moveRight(cellList)
+        moveSideEffect(actionMoveList)
     }
     //endregion Transformer
 
@@ -152,54 +126,6 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         return freeCell
     }
 
-    private fun moveUpLeftTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
-                                   whilePredicate: (innerCycle: Int) -> Boolean,
-                                   blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove) {
-        val actionMoveList = mutableListOf<ActionMove>()
-        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-
-        for (i in 0..(config.size - 1)) {
-            for (j in 1..(config.size - 1)) {
-                var temp = j
-                if (startWhilePredicate.invoke(i, j).value != 0) {
-                    while (whilePredicate.invoke(temp)) {
-                        val actionMove = blockWhile.invoke(temp, i)
-                        actionMoveList.add(actionMove)
-
-                        if (actionMove == ActionMove.EMPTY_MOVE) temp--
-                        else break
-                    }
-                }
-            }
-        }
-
-        moveSideEffect(actionMoveList)
-    }
-
-    private fun moveDownRightTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
-                                      whilePredicate: (innerCycle: Int) -> Boolean,
-                                      blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove) {
-        val actionMoveList = mutableListOf<ActionMove>()
-        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-
-        for (i in 0..(config.size - 1)) {
-            for (j in (config.size - 2) downTo 0) {
-                var temp = j
-                if (startWhilePredicate.invoke(i, j).value != 0) {
-                    while (whilePredicate.invoke(temp)) {
-                        val actionMove = blockWhile.invoke(temp, i)
-                        actionMoveList.add(actionMove)
-
-                        if (actionMove == ActionMove.EMPTY_MOVE) temp++
-                        else break
-                    }
-                }
-            }
-        }
-
-        moveSideEffect(actionMoveList)
-    }
-
     private fun shallowCopyCellList(): MutableList<MutableList<Cell>> {
         return cellList.map { it.map { Cell(it.x, it.y, it.value) }.toMutableList() }.toMutableList()
     }
@@ -208,10 +134,10 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
         with(config) {
             context.beginPath()
 
-            context.rect(cell.x.toDouble(),
-                    cell.y.toDouble(),
-                    cellWidth.toDouble(),
-                    cellHeight.toDouble())
+            context.rect(cell.x,
+                    cell.y,
+                    cellWidth,
+                    cellHeight)
 
             when (cell.value) {
                 0 -> context.fillStyle = "#F3F35F"
@@ -237,14 +163,14 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
                 context.font = "${fontSize}px Arial"
                 context.fillStyle = "white"
                 context.textAlign = CanvasTextAlign.CENTER
-                context.fillText(cell.value.toString(), (cell.x + cellWidth / 2).toDouble(), (cell.y + cellWidth / 2).toDouble())
+                context.fillText(cell.value.toString(), (cell.x + cellWidth / 2), (cell.y + cellWidth / 2))
             }
         }
     }
 
     private fun createEmptyCell(row: Int, coll: Int): Cell {
-        val x = coll * config.cellWidth + 5 * (coll + 1)
-        val y = row * config.cellHeight + 5 * (row + 1)
+        val x = coll * config.cellWidth + config.cellBorder * (coll + 1)
+        val y = row * config.cellHeight + config.cellBorder * (row + 1)
         return Cell(x, y, 0)
     }
 
@@ -264,5 +190,13 @@ object RenderServiceImpl : RenderService, Transformer, ObservableProvider {
             if (it != ActionMove.FAILED_MOVE) return false
         }
         return true
+    }
+
+    private fun animate() {
+        requestAnimationFrameValue = window.requestAnimationFrame {
+            animate()
+        }
+        config.context.clear()
+        drawAllCells()
     }
 }

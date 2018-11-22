@@ -29,9 +29,9 @@ interface MainContract {
         var state: State
 
         fun onResize(size: Int,
-                     cellWidth: Int,
-                     cellHeight: Int,
-                     cellBorder: Int,
+                     cellWidth: Double,
+                     cellHeight: Double,
+                     cellBorder: Double,
                      context: CanvasRenderingContext2D)
         fun reload()
 

@@ -13,14 +13,12 @@ class MainInteractor : MainContract.Interactor {
     init {
         RenderServiceImpl.lastStateObservable.observe {
             cacheModel = it
+            console.log(it.cellList)
         }
     }
 
     override fun startGame() {
-        RenderServiceImpl.reset()
-        RenderServiceImpl.createCells()
-        RenderServiceImpl.drawAllCells()
-        RenderServiceImpl.pasteNewCell()
+        RenderServiceImpl.startRender()
     }
 
     override fun actionMove(action: MainContract.Action) {
@@ -33,8 +31,8 @@ class MainInteractor : MainContract.Interactor {
     }
 
     override fun resize(config: RenderServiceConfig) {
-        RenderServiceImpl.reset()
-        RenderServiceImpl.config = config
+        RenderServiceImpl.restartService()
+        RenderServiceImpl.setRenderConfig(config)
         startGame()
     }
 
@@ -47,7 +45,6 @@ class MainInteractor : MainContract.Interactor {
     override fun redraw() {
         cacheModel?.let {
             RenderServiceImpl.restoreState(it)
-            RenderServiceImpl.drawAllCells()
             cacheModel = null
         }
     }
