@@ -24,8 +24,8 @@ fun main(args: Array<String>) {
     loseHolder = document.getElementById("lose_holder") as HTMLDivElement
 
     val size = 4
-    val cellWidth = canvas.width / size - 6
-    val cellBorder = 6
+    val cellBorder = 5.0
+    val cellWidth = canvas.width / size - (cellBorder + 1)
 
     val viewModel = MainViewModel(size, cellWidth, cellWidth, cellBorder, context)
 
@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
         }
 
         if (value >= 2 && value <= 20) {
-            val newCellWidth = canvas.width / value - 6
+            val newCellWidth = canvas.width / value - (cellBorder + 1)
             viewModel.onResize(value, newCellWidth, newCellWidth, cellBorder, context)
         }
     }

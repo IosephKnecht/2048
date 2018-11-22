@@ -58,9 +58,7 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
 
     private fun reset() {
         scoreObservable.setValue(0)
-        config.context.apply {
-            clearRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
-        }
+        config.context.clear()
         cellList.clear()
     }
 
@@ -136,10 +134,10 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
         with(config) {
             context.beginPath()
 
-            context.rect(cell.x.toDouble(),
-                    cell.y.toDouble(),
-                    cellWidth.toDouble(),
-                    cellHeight.toDouble())
+            context.rect(cell.x,
+                    cell.y,
+                    cellWidth,
+                    cellHeight)
 
             when (cell.value) {
                 0 -> context.fillStyle = "#F3F35F"
@@ -165,14 +163,14 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
                 context.font = "${fontSize}px Arial"
                 context.fillStyle = "white"
                 context.textAlign = CanvasTextAlign.CENTER
-                context.fillText(cell.value.toString(), (cell.x + cellWidth / 2).toDouble(), (cell.y + cellWidth / 2).toDouble())
+                context.fillText(cell.value.toString(), (cell.x + cellWidth / 2), (cell.y + cellWidth / 2))
             }
         }
     }
 
     private fun createEmptyCell(row: Int, coll: Int): Cell {
-        val x = coll * config.cellWidth.toDouble() + 5 * (coll + 1)
-        val y = row * config.cellHeight.toDouble() + 5 * (row + 1)
+        val x = coll * config.cellWidth + config.cellBorder * (coll + 1)
+        val y = row * config.cellHeight + config.cellBorder * (row + 1)
         return Cell(x, y, 0)
     }
 
