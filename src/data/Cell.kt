@@ -2,7 +2,7 @@ package data
 
 data class Cell(var x: Double,
                 var y: Double,
-                var value: Double = 0.0) {
+                var value: Int = 0) {
 
     override fun equals(other: Any?): Boolean {
         val obj = other is Cell

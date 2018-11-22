@@ -13,6 +13,7 @@ class MainInteractor : MainContract.Interactor {
     init {
         RenderServiceImpl.lastStateObservable.observe {
             cacheModel = it
+            console.log(it.cellList)
         }
     }
 
@@ -31,7 +32,7 @@ class MainInteractor : MainContract.Interactor {
 
     override fun resize(config: RenderServiceConfig) {
         RenderServiceImpl.restartService()
-        RenderServiceImpl.config = config
+        RenderServiceImpl.setRenderConfig(config)
         startGame()
     }
 
@@ -55,8 +56,8 @@ class MainInteractor : MainContract.Interactor {
                 val currentCell = list[i][j]
                 val nextCell = list[i][j + 1]
 
-                if (currentCell.value == 0.0 ||
-                        nextCell.value == 0.0 ||
+                if (currentCell.value == 0 ||
+                        nextCell.value == 0 ||
                         currentCell.value == nextCell.value) return true
             }
         }
@@ -70,8 +71,8 @@ class MainInteractor : MainContract.Interactor {
                 val currentCell = list[j][i]
                 val nextCell = list[j + 1][i]
 
-                if (currentCell.value == 0.0 ||
-                        nextCell.value == 0.0 ||
+                if (currentCell.value == 0 ||
+                        nextCell.value == 0 ||
                         currentCell.value == nextCell.value) return true
             }
         }

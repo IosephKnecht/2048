@@ -24,7 +24,7 @@ class MainViewModel(size: Int,
     init {
         interactor = MainInteractor()
 
-        RenderServiceImpl.config = RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context)
+        RenderServiceImpl.setRenderConfig(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context))
 
         actionObservable.observe {
             if (!loseObservable.getValue()!!) {
