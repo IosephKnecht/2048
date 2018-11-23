@@ -9,7 +9,6 @@ import kotlin.math.floor
 import presentation.clear
 import kotlin.browser.window
 import domain.RenderServiceContract.Transformer.ActionMove
-import presentation.increment
 
 object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceContract.ObservableProvider {
 
@@ -17,8 +16,6 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
     private lateinit var transformer: RenderServiceContract.Transformer
 
     private var cellList = mutableListOf<MutableList<Cell>>()
-    override val scoreObservable = LiveData(0)
-    override val lastStateObservable = LiveData<CacheModel>()
     override val changeListObservable = LiveData<List<List<Cell>>>()
     private var requestAnimationFrameValue: Int? = null
 
@@ -42,22 +39,16 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
         animate()
     }
 
-    override fun restoreState(cacheModel: CacheModel) {
-        scoreObservable.setValue(cacheModel.score)
-        cellList = cacheModel.cellList
+    override fun restoreState(cachedCellList: List<List<Cell>>) {
+        cellList = cachedCellList.map { it.toMutableList() }.toMutableList()
     }
 
     override fun setRenderConfig(config: RenderServiceConfig) {
         this.config = config
         transformer = TransformerImpl(config.size)
-
-        transformer.scoreChangedObservable.observe {
-            scoreObservable.increment(it)
-        }
     }
 
     private fun reset() {
-        scoreObservable.setValue(0)
         config.context.clear()
         cellList.clear()
     }
@@ -92,26 +83,26 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
 
     //region Transformer
     override fun moveLeft() {
-        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.moveLeft(cellList)
+        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.left(cellList)
         moveSideEffect(actionMoveList)
     }
 
     override fun moveUp() {
-        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.moveUp(cellList)
+        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.up(cellList)
         moveSideEffect(actionMoveList)
     }
 
     override fun moveDown() {
-        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.moveDown(cellList)
+        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.down(cellList)
         moveSideEffect(actionMoveList)
     }
 
     override fun moveRight() {
-        lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.moveRight(cellList)
+        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+        val actionMoveList = transformer.right(cellList)
         moveSideEffect(actionMoveList)
     }
     //endregion Transformer
@@ -126,8 +117,8 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
         return freeCell
     }
 
-    private fun shallowCopyCellList(): MutableList<MutableList<Cell>> {
-        return cellList.map { it.map { Cell(it.x, it.y, it.value) }.toMutableList() }.toMutableList()
+    override fun copyList(): List<List<Cell>> {
+        return cellList.map { it.map { Cell(it.x, it.y, it.value) } }
     }
 
     private fun drawCell(cell: Cell) {

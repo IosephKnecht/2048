@@ -1,27 +1,28 @@
 package presentation.interactor
 
-import data.CacheModel
-import data.Cell
-import data.RenderServiceConfig
+import data.*
 import domain.RenderServiceImpl
 import presentation.MainContract
 
 class MainInteractor : MainContract.Interactor {
 
+    override val scoreObservable = LiveData<Int>()
+
     private var cacheModel: CacheModel? = null
 
     init {
-        RenderServiceImpl.lastStateObservable.observe {
-            cacheModel = it
-            console.log(it.cellList)
+        RenderServiceImpl.changeListObservable.observe {
+            scoreObservable.setValue(calculScore(it))
         }
     }
 
     override fun startGame() {
+        scoreObservable.setValue(0)
         RenderServiceImpl.startRender()
     }
 
     override fun actionMove(action: MainContract.Action) {
+        addRestoreState()
         return when (action) {
             MainContract.Action.DOWN -> RenderServiceImpl.moveDown()
             MainContract.Action.RIGHT -> RenderServiceImpl.moveRight()
@@ -31,6 +32,7 @@ class MainInteractor : MainContract.Interactor {
     }
 
     override fun resize(config: RenderServiceConfig) {
+        scoreObservable.setValue(0)
         RenderServiceImpl.restartService()
         RenderServiceImpl.setRenderConfig(config)
         startGame()
@@ -44,9 +46,19 @@ class MainInteractor : MainContract.Interactor {
 
     override fun redraw() {
         cacheModel?.let {
-            RenderServiceImpl.restoreState(it)
+            scoreObservable.setValue(it.score)
+            RenderServiceImpl.restoreState(it.cellList)
             cacheModel = null
         }
+    }
+
+    override fun updateConfig(config: RenderServiceConfig) {
+        RenderServiceImpl.setRenderConfig(config)
+    }
+
+    private fun addRestoreState() {
+        val list = RenderServiceImpl.copyList()
+        cacheModel = CacheModel(list, scoreObservable.getValue() ?: 0)
     }
 
     private fun checkRow(list: List<List<Cell>>): Boolean {
@@ -77,5 +89,16 @@ class MainInteractor : MainContract.Interactor {
             }
         }
         return false
+    }
+
+    // FIXME
+    private fun calculScore(cellList: List<List<Cell>>): Int {
+        var score = 0
+        cellList.forEach {
+            it.forEach {
+                score += it.value
+            }
+        }
+        return score
     }
 }

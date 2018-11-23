@@ -15,11 +15,14 @@ interface MainContract {
     }
 
     interface Interactor {
+        val scoreObservable: ImmutableLiveData<Int>
+
         fun startGame()
         fun actionMove(action: Action)
         fun resize(config: RenderServiceConfig)
         fun hasMoreMove(list: List<List<Cell>>): Boolean
         fun redraw()
+        fun updateConfig(config: RenderServiceConfig)
     }
 
     interface ViewModel {
@@ -33,6 +36,7 @@ interface MainContract {
                      cellHeight: Double,
                      cellBorder: Double,
                      context: CanvasRenderingContext2D)
+
         fun reload()
 
         fun undo()

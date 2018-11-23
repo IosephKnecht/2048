@@ -1,4 +1,4 @@
 package data
 
-data class CacheModel(val cellList: MutableList<MutableList<Cell>> = mutableListOf(),
+data class CacheModel(val cellList: List<List<Cell>> = listOf(),
                       val score: Int = 0)
