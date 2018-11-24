@@ -15,10 +15,6 @@ interface RenderServiceContract {
     }
 
     interface Transformer {
-        enum class ActionMove {
-            EMPTY_MOVE, SUCCESS_MOVE, FAILED_MOVE
-        }
-
         fun left(cellList: List<List<Cell>>): List<List<Cell>>
         fun right(cellList: List<List<Cell>>): List<List<Cell>>
         fun up(cellList: List<List<Cell>>): List<List<Cell>>

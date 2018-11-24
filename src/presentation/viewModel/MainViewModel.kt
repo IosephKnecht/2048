@@ -8,6 +8,7 @@ import domain.TransformerImpl
 import org.w3c.dom.CanvasRenderingContext2D
 import presentation.MainContract
 import presentation.interactor.MainInteractor
+import presentation.MainContract.Interactor.GameState
 
 class MainViewModel(private val size: Int,
                     private val cellWidth: Double,
@@ -20,8 +21,6 @@ class MainViewModel(private val size: Int,
     override val scoreObservable = LiveData<Int>()
     override val actionObservable = LiveData<MainContract.Action>()
     override val loseObservable = LiveData(false)
-
-    override var state = MainContract.State.IDLE
 
     init {
         initDependency()
@@ -38,6 +37,14 @@ class MainViewModel(private val size: Int,
 
         interactor.scoreObservable.observe {
             scoreObservable.setValue(it)
+        }
+
+        interactor.gameStateObservable.observe {
+            when (it) {
+                GameState.LOSE -> loseObservable.setValue(true)
+                else -> {
+                }
+            }
         }
 
         interactor.startGame()

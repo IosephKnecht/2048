@@ -1,6 +1,7 @@
 package presentation.interactor
 
 import data.*
+import domain.CellListChecker
 import domain.RenderServiceContract
 import domain.RenderServiceImpl
 import domain.TransformerImpl
@@ -8,12 +9,13 @@ import presentation.MainContract
 import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
+import presentation.MainContract.Interactor.GameState
 
 class MainInteractor(private val renderService: RenderServiceImpl,
                      private val transformer: RenderServiceContract.Transformer) : MainContract.Interactor {
 
     override val scoreObservable = LiveData<Int>()
-
+    override val gameStateObservable = LiveData(GameState.STARTING)
     private var cacheModel: CacheModel? = null
 
     override fun startGame() {
@@ -38,7 +40,16 @@ class MainInteractor(private val renderService: RenderServiceImpl,
         if (mutableCellList != immutableCellList) {
             renderService.updateList(mutableCellList)
             addRestoreState(immutableCellList)
-            pasteNewCell()
+
+            if (CellListChecker.isEmpty(mutableCellList)) {
+                pasteNewCell()
+
+                // FIXME: hard logic
+                if (!CellListChecker.checkColl(mutableCellList) &&
+                        !CellListChecker.checkRow(mutableCellList)) {
+                    gameStateObservable.setValue(GameState.LOSE)
+                }
+            }
         }
     }
 

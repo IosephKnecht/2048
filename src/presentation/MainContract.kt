@@ -10,11 +10,12 @@ interface MainContract {
         UP, DOWN, LEFT, RIGHT
     }
 
-    enum class State {
-        IDLE, INIT
-    }
-
     interface Interactor {
+        enum class GameState {
+            STARTING, WIN, LOSE, INFINITE
+        }
+
+        val gameStateObservable: ImmutableLiveData<GameState>
         val scoreObservable: ImmutableLiveData<Int>
 
         fun startGame()
@@ -27,7 +28,6 @@ interface MainContract {
         val loseObservable: ImmutableLiveData<Boolean>
         val actionObservable: MutableLiveData<Action>
         val scoreObservable: ImmutableLiveData<Int>
-        var state: State
 
         fun onResize(size: Int,
                      cellWidth: Double,

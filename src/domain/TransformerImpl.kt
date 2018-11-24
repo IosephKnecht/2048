@@ -1,8 +1,6 @@
 package domain
 
 import data.Cell
-import data.LiveData
-import domain.RenderServiceContract.Transformer.ActionMove
 
 class TransformerImpl(private var size: Int) : RenderServiceContract.Transformer {
 
