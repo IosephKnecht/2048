@@ -5,6 +5,9 @@ import domain.RenderServiceContract
 import domain.RenderServiceImpl
 import domain.TransformerImpl
 import presentation.MainContract
+import kotlin.js.Math
+import kotlin.math.ceil
+import kotlin.math.floor
 
 class MainInteractor(private val renderService: RenderServiceImpl,
                      private val transformer: RenderServiceContract.Transformer) : MainContract.Interactor {
@@ -22,6 +25,7 @@ class MainInteractor(private val renderService: RenderServiceImpl,
     override fun startGame() {
         scoreObservable.setValue(0)
         renderService.startRender()
+        pasteNewCell()
     }
 
     override fun actionMove(action: MainContract.Action) {
@@ -37,7 +41,10 @@ class MainInteractor(private val renderService: RenderServiceImpl,
             MainContract.Action.UP -> transformer.up(mutableCellList)
         }
 
-        if (mutableCellList != immutableCellList) renderService.updateList(mutableCellList)
+        if (mutableCellList != immutableCellList) {
+            renderService.updateList(mutableCellList)
+            pasteNewCell()
+        }
     }
 
     override fun redraw() {
@@ -54,6 +61,21 @@ class MainInteractor(private val renderService: RenderServiceImpl,
         // FIXME
         (transformer as TransformerImpl).updateSize(config.size)
         startGame()
+    }
+
+    private fun pasteNewCell() {
+        val cellList = renderService.copyList()
+
+        while (true) {
+            val row = floor(Math.random() * cellList.size).toInt()
+            val coll = floor(Math.random() * cellList.size).toInt()
+
+            if (cellList[row][coll].value == 0) {
+                cellList[row][coll].value = 2 * ceil(Math.random() * 2).toInt()
+                renderService.updateList(cellList)
+                return
+            }
+        }
     }
 
     private fun addRestoreState() {

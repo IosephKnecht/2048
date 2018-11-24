@@ -26,7 +26,6 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
         reset()
         createCells()
         animate()
-        pasteNewCell()
     }
 
     override fun stopRender() {
@@ -76,50 +75,7 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
             }
         }
     }
-
-    @Deprecated("migrate in interactor")
-    private fun pasteNewCell() {
-        while (true) {
-            val row = floor(Math.random() * config.size).toInt()
-            val coll = floor(Math.random() * config.size).toInt()
-
-            if (cellList[row][coll].value == 0) {
-                cellList[row][coll].value = 2 * ceil(Math.random() * 2).toInt()
-                return
-            }
-        }
-    }
     //endregion RenderService
-
-    //region Transformer
-//    @Deprecated("migrate in interactor")
-//    override fun moveLeft() {
-//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-//        val actionMoveList = transformer.left(cellList)
-//        moveSideEffect(actionMoveList)
-//    }
-
-//    @Deprecated("migrate in interactor")
-//    override fun moveUp() {
-//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-//        val actionMoveList = transformer.up(cellList)
-//        moveSideEffect(actionMoveList)
-//    }
-
-//    @Deprecated("migrate in interactor")
-//    override fun moveDown() {
-//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-//        val actionMoveList = transformer.down(cellList)
-//        moveSideEffect(actionMoveList)
-//    }
-
-//    @Deprecated("migrate in interactor")
-//    override fun moveRight() {
-//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-//        val actionMoveList = transformer.right(cellList)
-//        moveSideEffect(actionMoveList)
-//    }
-    //endregion Transformer
 
     @Deprecated("migrate in interactor")
     private fun calculFreeCell(): Int {
@@ -142,17 +98,17 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
         return Cell(x, y, 0)
     }
 
-    @Deprecated("migrate in inreractor")
-    private fun moveSideEffect(actionMoveList: List<ActionMove>) {
-        val freeCellValue = calculFreeCell()
-
-        val idling = checkIdle(actionMoveList)
-
-        if (freeCellValue != 0 && !idling) {
-            pasteNewCell()
-            changeListObservable.setValue(cellList)
-        }
-    }
+//    @Deprecated("migrate in inreractor")
+//    private fun moveSideEffect(actionMoveList: List<ActionMove>) {
+//        val freeCellValue = calculFreeCell()
+//
+//        val idling = checkIdle(actionMoveList)
+//
+//        if (freeCellValue != 0 && !idling) {
+//            pasteNewCell()
+//            changeListObservable.setValue(cellList)
+//        }
+//    }
 
     @Deprecated("migrate in interactor")
     private fun checkIdle(actionMoveList: List<ActionMove>): Boolean {
