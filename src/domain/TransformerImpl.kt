@@ -1,8 +1,11 @@
 package domain
 
 import data.Cell
+import data.LiveData
 
-class TransformerImpl(private var size: Int) : RenderServiceContract.Transformer {
+class TransformerImpl(private var size: Int) : RenderServiceContract.Transformer<Cell, List<List<Cell>>> {
+
+    override val transformChangeObservable = LiveData<Any>()
 
     fun updateSize(size: Int) {
         this.size = size
@@ -132,6 +135,8 @@ class TransformerImpl(private var size: Int) : RenderServiceContract.Transformer
     private fun onSuccessMove(shiftCell: Cell, currentCell: Cell) {
         shiftCell.value *= 2
         currentCell.value = 0
+
+        transformChangeObservable.setValue(shiftCell.value)
     }
 
     private fun onEmptyMove(shiftCell: Cell, currentCell: Cell) {

@@ -10,13 +10,22 @@ import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
 import presentation.MainContract.Interactor.GameState
+import presentation.increment
 
 class MainInteractor(private val renderService: RenderServiceImpl,
-                     private val transformer: RenderServiceContract.Transformer) : MainContract.Interactor {
+                     private val transformer: RenderServiceContract.Transformer<Cell, List<List<Cell>>>) : MainContract.Interactor {
 
     override val scoreObservable = LiveData<Int>()
     override val gameStateObservable = LiveData(GameState.STARTING)
     private var cacheModel: CacheModel? = null
+
+    init {
+        transformer.transformChangeObservable.observe {
+            if (it is Int) {
+                scoreObservable.increment(it)
+            }
+        }
+    }
 
     override fun startGame() {
         scoreObservable.setValue(0)

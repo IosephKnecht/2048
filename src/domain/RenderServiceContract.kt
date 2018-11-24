@@ -14,11 +14,13 @@ interface RenderServiceContract {
         fun updateList(updatedList: T)
     }
 
-    interface Transformer {
-        fun left(cellList: List<List<Cell>>): List<List<Cell>>
-        fun right(cellList: List<List<Cell>>): List<List<Cell>>
-        fun up(cellList: List<List<Cell>>): List<List<Cell>>
-        fun down(cellList: List<List<Cell>>): List<List<Cell>>
+    interface Transformer<E : DrawableElement, T : List<List<E>>> {
+        val transformChangeObservable: ImmutableLiveData<Any>
+
+        fun left(cellList: T): T
+        fun right(cellList: T): T
+        fun up(cellList: T): T
+        fun down(cellList: T): T
     }
 
     interface DrawableElement {

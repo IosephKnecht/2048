@@ -11,7 +11,6 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
     private var cellList = mutableListOf<MutableList<Cell>>()
     private var requestAnimationFrameValue: Int? = null
 
-    //region RenderService
     override fun startRender() {
         reset()
         createCells()
@@ -58,7 +57,6 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
             }
         }
     }
-    //endregion RenderService
 
     override fun copyList(): List<List<Cell>> {
         return cellList.map { it.map { Cell(it.x, it.y, it.value) } }
@@ -69,19 +67,6 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
         val y = row * config.cellHeight + config.cellBorder * (row + 1)
         return Cell(x, y, 0)
     }
-
-//    @Deprecated("migrate in inreractor")
-//    private fun moveSideEffect(actionMoveList: List<ActionMove>) {
-//        val freeCellValue = calculFreeCell()
-//
-//        val idling = checkIdle(actionMoveList)
-//
-//        if (freeCellValue != 0 && !idling) {
-//            pasteNewCell()
-//            changeListObservable.setValue(cellList)
-//        }
-//    }
-
 
     private fun animate() {
         requestAnimationFrameValue = window.requestAnimationFrame {
