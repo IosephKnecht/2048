@@ -1,23 +1,26 @@
 package domain
 
-import data.*
+import data.Cell
+import data.LiveData
+import data.RenderServiceConfig
+import domain.RenderServiceContract.Transformer.ActionMove
 import org.w3c.dom.CENTER
 import org.w3c.dom.CanvasTextAlign
+import presentation.clear
+import kotlin.browser.window
 import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
-import presentation.clear
-import kotlin.browser.window
-import domain.RenderServiceContract.Transformer.ActionMove
 
-object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceContract.ObservableProvider {
-
-    private lateinit var config: RenderServiceConfig
-    private lateinit var transformer: RenderServiceContract.Transformer
+class RenderServiceImpl(private var config: RenderServiceConfig,
+                        private var transformer: TransformerImpl,
+                        private val drawer: RenderServiceContract.Drawer<Cell>) : RenderServiceContract.RenderService,
+        RenderServiceContract.ObservableProvider {
 
     private var cellList = mutableListOf<MutableList<Cell>>()
-    override val changeListObservable = LiveData<List<List<Cell>>>()
     private var requestAnimationFrameValue: Int? = null
+
+    override val changeListObservable = LiveData<List<List<Cell>>>()
 
     //region RenderService
     override fun startRender() {
@@ -39,13 +42,16 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
         animate()
     }
 
+    @Deprecated("migrate in interactor")
     override fun restoreState(cachedCellList: List<List<Cell>>) {
         cellList = cachedCellList.map { it.toMutableList() }.toMutableList()
     }
 
     override fun setRenderConfig(config: RenderServiceConfig) {
         this.config = config
-        transformer = TransformerImpl(config.size)
+        //FIXME
+        transformer.updateSize(config.size)
+        (drawer as RectDrawer).updateParams(config.cellWidth,config.cellHeight)
     }
 
     private fun reset() {
@@ -55,7 +61,7 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
 
     private fun drawAllCells() {
         cellList.forEach {
-            it.forEach { cell -> drawCell(cell) }
+            it.forEach { cell -> drawer.drawElement(config.context, cell) }
         }
     }
 
@@ -68,6 +74,7 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
         }
     }
 
+    @Deprecated("migrate in interactor")
     private fun pasteNewCell() {
         while (true) {
             val row = floor(Math.random() * config.size).toInt()
@@ -82,24 +89,28 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
     //endregion RenderService
 
     //region Transformer
+    @Deprecated("migrate in interactor")
     override fun moveLeft() {
         //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
         val actionMoveList = transformer.left(cellList)
         moveSideEffect(actionMoveList)
     }
 
+    @Deprecated("migrate in interactor")
     override fun moveUp() {
         //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
         val actionMoveList = transformer.up(cellList)
         moveSideEffect(actionMoveList)
     }
 
+    @Deprecated("migrate in interactor")
     override fun moveDown() {
         //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
         val actionMoveList = transformer.down(cellList)
         moveSideEffect(actionMoveList)
     }
 
+    @Deprecated("migrate in interactor")
     override fun moveRight() {
         //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
         val actionMoveList = transformer.right(cellList)
@@ -107,6 +118,7 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
     }
     //endregion Transformer
 
+    @Deprecated("migrate in interactor")
     private fun calculFreeCell(): Int {
         var freeCell = 0
         cellList.forEach {
@@ -121,50 +133,13 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
         return cellList.map { it.map { Cell(it.x, it.y, it.value) } }
     }
 
-    private fun drawCell(cell: Cell) {
-        with(config) {
-            context.beginPath()
-
-            context.rect(cell.x,
-                    cell.y,
-                    cellWidth,
-                    cellHeight)
-
-            when (cell.value) {
-                0 -> context.fillStyle = "#F3F35F"
-                2 -> context.fillStyle = "#488281"
-                4 -> context.fillStyle = "#C46B3E"
-                8 -> context.fillStyle = "#FF4949"
-                16 -> context.fillStyle = "#9966CC"
-                32 -> context.fillStyle = "#5FACF3"
-                64 -> context.fillStyle = "#8DB600"
-                128 -> context.fillStyle = "#7BA05B"
-                256 -> context.fillStyle = "#00D3B5"
-                512 -> context.fillStyle = "#7FFFD4"
-                1024 -> context.fillStyle = "#4B5320"
-                2048 -> context.fillStyle = "#3B444B"
-                4096 -> context.fillStyle = "#0000FF"
-                else -> context.fillStyle = "#007FFF"
-            }
-
-            context.fill()
-
-            if (cell.value != 0) {
-                val fontSize = cellWidth / 2f
-                context.font = "${fontSize}px Arial"
-                context.fillStyle = "white"
-                context.textAlign = CanvasTextAlign.CENTER
-                context.fillText(cell.value.toString(), (cell.x + cellWidth / 2), (cell.y + cellWidth / 2))
-            }
-        }
-    }
-
     private fun createEmptyCell(row: Int, coll: Int): Cell {
         val x = coll * config.cellWidth + config.cellBorder * (coll + 1)
         val y = row * config.cellHeight + config.cellBorder * (row + 1)
         return Cell(x, y, 0)
     }
 
+    @Deprecated("migrate in inreractor")
     private fun moveSideEffect(actionMoveList: List<ActionMove>) {
         val freeCellValue = calculFreeCell()
 
@@ -176,6 +151,7 @@ object RenderServiceImpl : RenderServiceContract.RenderService, RenderServiceCon
         }
     }
 
+    @Deprecated("migrate in interactor")
     private fun checkIdle(actionMoveList: List<ActionMove>): Boolean {
         actionMoveList.forEach {
             if (it != ActionMove.FAILED_MOVE) return false

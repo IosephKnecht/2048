@@ -4,37 +4,36 @@ import data.*
 import domain.RenderServiceImpl
 import presentation.MainContract
 
-class MainInteractor : MainContract.Interactor {
+class MainInteractor(private val renderService: RenderServiceImpl) : MainContract.Interactor {
 
     override val scoreObservable = LiveData<Int>()
 
     private var cacheModel: CacheModel? = null
 
     init {
-        RenderServiceImpl.changeListObservable.observe {
+        renderService.changeListObservable.observe {
             scoreObservable.setValue(calculScore(it))
         }
     }
 
     override fun startGame() {
         scoreObservable.setValue(0)
-        RenderServiceImpl.startRender()
+        renderService.startRender()
     }
 
     override fun actionMove(action: MainContract.Action) {
         addRestoreState()
         return when (action) {
-            MainContract.Action.DOWN -> RenderServiceImpl.moveDown()
-            MainContract.Action.RIGHT -> RenderServiceImpl.moveRight()
-            MainContract.Action.LEFT -> RenderServiceImpl.moveLeft()
-            MainContract.Action.UP -> RenderServiceImpl.moveUp()
+            MainContract.Action.DOWN -> renderService.moveDown()
+            MainContract.Action.RIGHT -> renderService.moveRight()
+            MainContract.Action.LEFT -> renderService.moveLeft()
+            MainContract.Action.UP -> renderService.moveUp()
         }
     }
 
     override fun resize(config: RenderServiceConfig) {
-        scoreObservable.setValue(0)
-        RenderServiceImpl.restartService()
-        RenderServiceImpl.setRenderConfig(config)
+        renderService.stopRender()
+        renderService.setRenderConfig(config)
         startGame()
     }
 
@@ -47,17 +46,17 @@ class MainInteractor : MainContract.Interactor {
     override fun redraw() {
         cacheModel?.let {
             scoreObservable.setValue(it.score)
-            RenderServiceImpl.restoreState(it.cellList)
+            renderService.restoreState(it.cellList)
             cacheModel = null
         }
     }
 
     override fun updateConfig(config: RenderServiceConfig) {
-        RenderServiceImpl.setRenderConfig(config)
+        renderService.setRenderConfig(config)
     }
 
     private fun addRestoreState() {
-        val list = RenderServiceImpl.copyList()
+        val list = renderService.copyList()
         cacheModel = CacheModel(list, scoreObservable.getValue() ?: 0)
     }
 

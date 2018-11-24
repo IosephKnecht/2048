@@ -1,6 +1,7 @@
 package domain
 
 import data.*
+import org.w3c.dom.CanvasRenderingContext2D
 
 interface RenderServiceContract {
     interface RenderService {
@@ -30,5 +31,14 @@ interface RenderServiceContract {
 
     interface ObservableProvider {
         val changeListObservable: ImmutableLiveData<List<List<Cell>>>
+    }
+
+    interface DrawableElement {
+        val x: Double
+        val y: Double
+    }
+
+    interface Drawer<T : DrawableElement> {
+        fun drawElement(context: CanvasRenderingContext2D, element: DrawableElement)
     }
 }

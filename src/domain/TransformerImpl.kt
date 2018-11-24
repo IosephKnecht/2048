@@ -4,7 +4,11 @@ import data.Cell
 import data.LiveData
 import domain.RenderServiceContract.Transformer.ActionMove
 
-class TransformerImpl(private val size: Int) : RenderServiceContract.Transformer {
+class TransformerImpl(private var size: Int) : RenderServiceContract.Transformer {
+
+    fun updateSize(size: Int) {
+        this.size = size
+    }
 
     override fun left(cellList: MutableList<MutableList<Cell>>): List<ActionMove> {
         return moveUpLeftTemplate({ i, j -> cellList[i][j] },
