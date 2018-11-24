@@ -25,10 +25,6 @@ interface RenderServiceContract {
         fun down(cellList: List<List<Cell>>): List<List<Cell>>
     }
 
-    interface ObservableProvider {
-        val changeListObservable: ImmutableLiveData<List<List<Cell>>>
-    }
-
     interface DrawableElement {
         val x: Double
         val y: Double

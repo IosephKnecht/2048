@@ -16,12 +16,6 @@ class MainInteractor(private val renderService: RenderServiceImpl,
 
     private var cacheModel: CacheModel? = null
 
-    init {
-        renderService.changeListObservable.observe {
-            scoreObservable.setValue(calculScore(it))
-        }
-    }
-
     override fun startGame() {
         scoreObservable.setValue(0)
         renderService.startRender()
@@ -43,6 +37,7 @@ class MainInteractor(private val renderService: RenderServiceImpl,
 
         if (mutableCellList != immutableCellList) {
             renderService.updateList(mutableCellList)
+            addRestoreState(immutableCellList)
             pasteNewCell()
         }
     }
@@ -50,6 +45,7 @@ class MainInteractor(private val renderService: RenderServiceImpl,
     override fun redraw() {
         cacheModel?.let {
             scoreObservable.setValue(it.score)
+            renderService.updateList(cacheModel!!.cellList)
             //renderService.restoreState(it.cellList)
             cacheModel = null
         }
@@ -78,20 +74,19 @@ class MainInteractor(private val renderService: RenderServiceImpl,
         }
     }
 
-    private fun addRestoreState() {
-        val list = renderService.copyList()
-        cacheModel = CacheModel(list, scoreObservable.getValue() ?: 0)
+    private fun addRestoreState(cacheList: List<List<Cell>>) {
+        cacheModel = CacheModel(cacheList, scoreObservable.getValue() ?: 0)
     }
 
 
-    // FIXME
-    private fun calculScore(cellList: List<List<Cell>>): Int {
-        var score = 0
-        cellList.forEach {
-            it.forEach {
-                score += it.value
-            }
-        }
-        return score
-    }
+//    // FIXME
+//    private fun calculScore(cellList: List<List<Cell>>): Int {
+//        var score = 0
+//        cellList.forEach {
+//            it.forEach {
+//                score += it.value
+//            }
+//        }
+//        return score
+//    }
 }
