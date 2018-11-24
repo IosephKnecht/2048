@@ -7,8 +7,9 @@ import presentation.viewModel.MainViewModel
 import kotlin.browser.document
 import kotlin.browser.window
 
-private lateinit var loseHolder: HTMLDivElement
 private lateinit var canvas: HTMLCanvasElement
+private lateinit var loseHolder: HTMLDivElement
+private lateinit var winHolder: HTMLDivElement
 
 fun main(args: Array<String>) {
     canvas = document.getElementById("canvas")!! as HTMLCanvasElement
@@ -22,6 +23,7 @@ fun main(args: Array<String>) {
     val reloadButton = document.getElementById("restart_button")!! as HTMLImageElement
 
     loseHolder = document.getElementById("lose_holder") as HTMLDivElement
+    winHolder = document.getElementById("win_holder") as HTMLDivElement
 
     val size = 4
     val cellBorder = 5.0
@@ -42,6 +44,10 @@ fun main(args: Array<String>) {
         }
     }
 
+    winHolder.onclick = {
+        viewModel.onWinHolderClick()
+    }
+
     backArrow.onclick = { viewModel.undo() }
 
     reloadButton.onclick = {
@@ -58,6 +64,10 @@ fun main(args: Array<String>) {
 
     viewModel.loseObservable.observe {
         onLoseChangeState(it)
+    }
+
+    viewModel.winObservable.observe {
+        onWinChangeState(it)
     }
 
     val keyDownEvent: (KeyboardEvent) -> Unit = {
@@ -82,6 +92,15 @@ private fun onLoseChangeState(isLose: Boolean) {
         loseHolder.style.visibility = "visible"
     } else {
         loseHolder.style.visibility = "hidden"
+    }
+}
+
+private fun onWinChangeState(isWin: Boolean) {
+    if (isWin) {
+        winHolder.style.opacity = "0.85"
+        winHolder.style.visibility = "visible"
+    } else {
+        winHolder.style.visibility = "hidden"
     }
 }
 

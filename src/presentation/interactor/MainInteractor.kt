@@ -1,72 +1,70 @@
 package presentation.interactor
 
-import data.*
+import data.CacheModel
+import data.Cell
+import data.LiveData
+import data.RenderServiceConfig
 import domain.CellListChecker
 import domain.RenderServiceContract
-import domain.RenderServiceImpl
 import domain.TransformerImpl
 import presentation.MainContract
+import presentation.MainContract.Interactor.GameState
+import presentation.increment
 import kotlin.js.Math
 import kotlin.math.ceil
 import kotlin.math.floor
-import presentation.MainContract.Interactor.GameState
-import presentation.increment
 
-class MainInteractor(private val renderService: RenderServiceImpl,
+class MainInteractor(private val renderService: RenderServiceContract.RenderService<List<List<Cell>>>,
                      private val transformer: RenderServiceContract.Transformer<Cell, List<List<Cell>>>) : MainContract.Interactor {
 
+    private val WIN_BORDER = 32
+
     override val scoreObservable = LiveData<Int>()
-    override val gameStateObservable = LiveData(GameState.STARTING)
+    override val gameStateObservable = LiveData<GameState>()
     private var cacheModel: CacheModel? = null
 
     init {
         transformer.transformChangeObservable.observe {
             if (it is Int) {
                 scoreObservable.increment(it)
+
+                if (gameStateObservable.getValue() != GameState.INFINITE && it == WIN_BORDER)
+                    gameStateObservable.setValue(GameState.WIN)
             }
         }
     }
 
     override fun startGame() {
         scoreObservable.setValue(0)
+        gameStateObservable.setValue(GameState.STARTING)
         renderService.startRender()
         pasteNewCell()
     }
 
     override fun actionMove(action: MainContract.Action) {
-        //addRestoreState()
+        if (isReactMoving()) {
+            val mutableCellList = renderService.copyList()
+            val immutableCellList = renderService.copyList()
 
-        val mutableCellList = renderService.copyList()
-        val immutableCellList = renderService.copyList()
-
-        when (action) {
-            MainContract.Action.DOWN -> transformer.down(mutableCellList)
-            MainContract.Action.RIGHT -> transformer.right(mutableCellList)
-            MainContract.Action.LEFT -> transformer.left(mutableCellList)
-            MainContract.Action.UP -> transformer.up(mutableCellList)
-        }
-
-        if (mutableCellList != immutableCellList) {
-            renderService.updateList(mutableCellList)
-            addRestoreState(immutableCellList)
-
-            if (CellListChecker.isEmpty(mutableCellList)) {
-                pasteNewCell()
-
-                // FIXME: hard logic
-                if (!CellListChecker.checkColl(mutableCellList) &&
-                        !CellListChecker.checkRow(mutableCellList)) {
-                    gameStateObservable.setValue(GameState.LOSE)
-                }
+            when (action) {
+                MainContract.Action.DOWN -> transformer.down(mutableCellList)
+                MainContract.Action.RIGHT -> transformer.right(mutableCellList)
+                MainContract.Action.LEFT -> transformer.left(mutableCellList)
+                MainContract.Action.UP -> transformer.up(mutableCellList)
             }
+
+            moveSideEffect(mutableCellList, immutableCellList)
         }
+    }
+
+    override fun winHolderClick() {
+        gameStateObservable.setValue(GameState.INFINITE)
     }
 
     override fun redraw() {
         cacheModel?.let {
             scoreObservable.setValue(it.score)
             renderService.updateList(cacheModel!!.cellList)
-            //renderService.restoreState(it.cellList)
             cacheModel = null
         }
     }
@@ -98,15 +96,25 @@ class MainInteractor(private val renderService: RenderServiceImpl,
         cacheModel = CacheModel(cacheList, scoreObservable.getValue() ?: 0)
     }
 
+    private fun moveSideEffect(mutableCellList: List<List<Cell>>, immutableCellList: List<List<Cell>>) {
+        if (mutableCellList != immutableCellList) {
+            renderService.updateList(mutableCellList)
+            addRestoreState(immutableCellList)
 
-//    // FIXME
-//    private fun calculScore(cellList: List<List<Cell>>): Int {
-//        var score = 0
-//        cellList.forEach {
-//            it.forEach {
-//                score += it.value
-//            }
-//        }
-//        return score
-//    }
+            if (CellListChecker.isEmpty(mutableCellList)) {
+                pasteNewCell()
+
+                // FIXME: hard logic
+                if (!CellListChecker.checkColl(mutableCellList) &&
+                        !CellListChecker.checkRow(mutableCellList)) {
+                    gameStateObservable.setValue(GameState.LOSE)
+                }
+            }
+        }
+    }
+
+    private fun isReactMoving(): Boolean {
+        val gameStateValue = gameStateObservable.getValue()
+        return gameStateValue != GameState.WIN && gameStateValue != GameState.LOSE
+    }
 }

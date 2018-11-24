@@ -22,12 +22,14 @@ interface MainContract {
         fun actionMove(action: Action)
         fun redraw()
         fun updateConfig(config: RenderServiceConfig)
+        fun winHolderClick()
     }
 
     interface ViewModel {
         val loseObservable: ImmutableLiveData<Boolean>
         val actionObservable: MutableLiveData<Action>
         val scoreObservable: ImmutableLiveData<Int>
+        val winObservable: ImmutableLiveData<Boolean>
 
         fun onResize(size: Int,
                      cellWidth: Double,
@@ -38,5 +40,7 @@ interface MainContract {
         fun reload()
 
         fun undo()
+
+        fun onWinHolderClick()
     }
 }

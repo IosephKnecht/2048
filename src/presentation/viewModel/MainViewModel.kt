@@ -7,8 +7,8 @@ import domain.RenderServiceImpl
 import domain.TransformerImpl
 import org.w3c.dom.CanvasRenderingContext2D
 import presentation.MainContract
-import presentation.interactor.MainInteractor
 import presentation.MainContract.Interactor.GameState
+import presentation.interactor.MainInteractor
 
 class MainViewModel(private val size: Int,
                     private val cellWidth: Double,
@@ -21,19 +21,14 @@ class MainViewModel(private val size: Int,
     override val scoreObservable = LiveData<Int>()
     override val actionObservable = LiveData<MainContract.Action>()
     override val loseObservable = LiveData(false)
+    override val winObservable = LiveData(false)
 
     init {
         initDependency()
 
         actionObservable.observe {
-            if (!loseObservable.getValue()!!) {
-                interactor.actionMove(it)
-            }
+            interactor.actionMove(it)
         }
-
-//        RenderServiceImpl.changeListObservable.observe {
-//            loseObservable.setValue(!interactor.hasMoreMove(it))
-//        }
 
         interactor.scoreObservable.observe {
             scoreObservable.setValue(it)
@@ -42,6 +37,8 @@ class MainViewModel(private val size: Int,
         interactor.gameStateObservable.observe {
             when (it) {
                 GameState.LOSE -> loseObservable.setValue(true)
+                GameState.WIN -> winObservable.setValue(true)
+                GameState.INFINITE -> winObservable.setValue(false)
                 else -> {
                 }
             }
@@ -63,6 +60,10 @@ class MainViewModel(private val size: Int,
         interactor.redraw()
     }
 
+    override fun onWinHolderClick() {
+        interactor.winHolderClick()
+    }
+
     override fun reload() {
         interactor.startGame()
         reset()
@@ -73,6 +74,7 @@ class MainViewModel(private val size: Int,
         loseObservable.setValue(false)
     }
 
+    // TODO: Bad solve for DI.
     private fun initDependency() {
         val drawer = RectDrawer(cellWidth, cellHeight)
         val transformer = TransformerImpl(size)
