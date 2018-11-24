@@ -1,10 +1,13 @@
 package presentation.interactor
 
 import data.*
+import domain.RenderServiceContract
 import domain.RenderServiceImpl
+import domain.TransformerImpl
 import presentation.MainContract
 
-class MainInteractor(private val renderService: RenderServiceImpl) : MainContract.Interactor {
+class MainInteractor(private val renderService: RenderServiceImpl,
+                     private val transformer: RenderServiceContract.Transformer) : MainContract.Interactor {
 
     override val scoreObservable = LiveData<Int>()
 
@@ -22,37 +25,35 @@ class MainInteractor(private val renderService: RenderServiceImpl) : MainContrac
     }
 
     override fun actionMove(action: MainContract.Action) {
-        addRestoreState()
-        return when (action) {
-            MainContract.Action.DOWN -> renderService.moveDown()
-            MainContract.Action.RIGHT -> renderService.moveRight()
-            MainContract.Action.LEFT -> renderService.moveLeft()
-            MainContract.Action.UP -> renderService.moveUp()
+        //addRestoreState()
+
+        val mutableCellList = renderService.copyList()
+        val immutableCellList = renderService.copyList()
+
+        when (action) {
+            MainContract.Action.DOWN -> transformer.down(mutableCellList)
+            MainContract.Action.RIGHT -> transformer.right(mutableCellList)
+            MainContract.Action.LEFT -> transformer.left(mutableCellList)
+            MainContract.Action.UP -> transformer.up(mutableCellList)
         }
-    }
 
-    override fun resize(config: RenderServiceConfig) {
-        renderService.stopRender()
-        renderService.setRenderConfig(config)
-        startGame()
-    }
-
-    override fun hasMoreMove(list: List<List<Cell>>): Boolean {
-        val rowResult = checkRow(list)
-        val collResult = checkColl(list)
-        return rowResult || collResult
+        if (mutableCellList != immutableCellList) renderService.updateList(mutableCellList)
     }
 
     override fun redraw() {
         cacheModel?.let {
             scoreObservable.setValue(it.score)
-            renderService.restoreState(it.cellList)
+            //renderService.restoreState(it.cellList)
             cacheModel = null
         }
     }
 
     override fun updateConfig(config: RenderServiceConfig) {
+        renderService.stopRender()
         renderService.setRenderConfig(config)
+        // FIXME
+        (transformer as TransformerImpl).updateSize(config.size)
+        startGame()
     }
 
     private fun addRestoreState() {
@@ -60,35 +61,6 @@ class MainInteractor(private val renderService: RenderServiceImpl) : MainContrac
         cacheModel = CacheModel(list, scoreObservable.getValue() ?: 0)
     }
 
-    private fun checkRow(list: List<List<Cell>>): Boolean {
-        val size = list.size - 1
-        for (i in 0..size) {
-            for (j in 0..(size - 1)) {
-                val currentCell = list[i][j]
-                val nextCell = list[i][j + 1]
-
-                if (currentCell.value == 0 ||
-                        nextCell.value == 0 ||
-                        currentCell.value == nextCell.value) return true
-            }
-        }
-        return false
-    }
-
-    private fun checkColl(list: List<List<Cell>>): Boolean {
-        val size = list.size - 1
-        for (j in 0..(size - 1)) {
-            for (i in 0..size) {
-                val currentCell = list[j][i]
-                val nextCell = list[j + 1][i]
-
-                if (currentCell.value == 0 ||
-                        nextCell.value == 0 ||
-                        currentCell.value == nextCell.value) return true
-            }
-        }
-        return false
-    }
 
     // FIXME
     private fun calculScore(cellList: List<List<Cell>>): Int {

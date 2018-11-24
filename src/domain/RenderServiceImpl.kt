@@ -13,8 +13,7 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 class RenderServiceImpl(private var config: RenderServiceConfig,
-                        private var transformer: TransformerImpl,
-                        private val drawer: RenderServiceContract.Drawer<Cell>) : RenderServiceContract.RenderService,
+                        private val drawer: RenderServiceContract.Drawer<Cell>) : RenderServiceContract.RenderService<List<List<Cell>>>,
         RenderServiceContract.ObservableProvider {
 
     private var cellList = mutableListOf<MutableList<Cell>>()
@@ -42,16 +41,20 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
         animate()
     }
 
-    @Deprecated("migrate in interactor")
-    override fun restoreState(cachedCellList: List<List<Cell>>) {
-        cellList = cachedCellList.map { it.toMutableList() }.toMutableList()
-    }
+//    @Deprecated("migrate in interactor")
+//    override fun restoreState(cachedCellList: List<List<Cell>>) {
+//        cellList = cachedCellList.map { it.toMutableList() }.toMutableList()
+//    }
 
     override fun setRenderConfig(config: RenderServiceConfig) {
         this.config = config
         //FIXME
-        transformer.updateSize(config.size)
-        (drawer as RectDrawer).updateParams(config.cellWidth,config.cellHeight)
+        //transformer.updateSize(config.size)
+        (drawer as RectDrawer).updateParams(config.cellWidth, config.cellHeight)
+    }
+
+    override fun updateList(updatedList: List<List<Cell>>) {
+        this.cellList = updatedList.map { it.toMutableList() }.toMutableList()
     }
 
     private fun reset() {
@@ -89,33 +92,33 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
     //endregion RenderService
 
     //region Transformer
-    @Deprecated("migrate in interactor")
-    override fun moveLeft() {
-        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.left(cellList)
-        moveSideEffect(actionMoveList)
-    }
+//    @Deprecated("migrate in interactor")
+//    override fun moveLeft() {
+//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+//        val actionMoveList = transformer.left(cellList)
+//        moveSideEffect(actionMoveList)
+//    }
 
-    @Deprecated("migrate in interactor")
-    override fun moveUp() {
-        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.up(cellList)
-        moveSideEffect(actionMoveList)
-    }
+//    @Deprecated("migrate in interactor")
+//    override fun moveUp() {
+//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+//        val actionMoveList = transformer.up(cellList)
+//        moveSideEffect(actionMoveList)
+//    }
 
-    @Deprecated("migrate in interactor")
-    override fun moveDown() {
-        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.down(cellList)
-        moveSideEffect(actionMoveList)
-    }
+//    @Deprecated("migrate in interactor")
+//    override fun moveDown() {
+//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+//        val actionMoveList = transformer.down(cellList)
+//        moveSideEffect(actionMoveList)
+//    }
 
-    @Deprecated("migrate in interactor")
-    override fun moveRight() {
-        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
-        val actionMoveList = transformer.right(cellList)
-        moveSideEffect(actionMoveList)
-    }
+//    @Deprecated("migrate in interactor")
+//    override fun moveRight() {
+//        //lastStateObservable.setValue(CacheModel(shallowCopyCellList(), scoreObservable.getValue()!!))
+//        val actionMoveList = transformer.right(cellList)
+//        moveSideEffect(actionMoveList)
+//    }
     //endregion Transformer
 
     @Deprecated("migrate in interactor")

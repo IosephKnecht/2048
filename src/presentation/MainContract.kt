@@ -19,8 +19,6 @@ interface MainContract {
 
         fun startGame()
         fun actionMove(action: Action)
-        fun resize(config: RenderServiceConfig)
-        fun hasMoreMove(list: List<List<Cell>>): Boolean
         fun redraw()
         fun updateConfig(config: RenderServiceConfig)
     }

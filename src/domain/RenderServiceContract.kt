@@ -4,18 +4,14 @@ import data.*
 import org.w3c.dom.CanvasRenderingContext2D
 
 interface RenderServiceContract {
-    interface RenderService {
+
+    interface RenderService<T : List<List<RenderServiceContract.DrawableElement>>> {
         fun startRender()
         fun stopRender()
         fun restartService()
-        fun restoreState(cachedCellList: List<List<Cell>>)
         fun setRenderConfig(config: RenderServiceConfig)
-        fun copyList(): List<List<Cell>>
-
-        fun moveLeft()
-        fun moveRight()
-        fun moveDown()
-        fun moveUp()
+        fun copyList(): T
+        fun updateList(updatedList: T)
     }
 
     interface Transformer {
@@ -23,10 +19,10 @@ interface RenderServiceContract {
             EMPTY_MOVE, SUCCESS_MOVE, FAILED_MOVE
         }
 
-        fun left(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
-        fun right(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
-        fun up(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
-        fun down(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
+        fun left(cellList: List<List<Cell>>): List<List<Cell>>
+        fun right(cellList: List<List<Cell>>): List<List<Cell>>
+        fun up(cellList: List<List<Cell>>): List<List<Cell>>
+        fun down(cellList: List<List<Cell>>): List<List<Cell>>
     }
 
     interface ObservableProvider {
@@ -39,6 +35,6 @@ interface RenderServiceContract {
     }
 
     interface Drawer<T : DrawableElement> {
-        fun drawElement(context: CanvasRenderingContext2D, element: DrawableElement)
+        fun drawElement(context: CanvasRenderingContext2D, element: T)
     }
 }

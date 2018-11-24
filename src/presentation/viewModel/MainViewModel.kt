@@ -48,7 +48,7 @@ class MainViewModel(private val size: Int,
                           cellHeight: Double,
                           cellBorder: Double,
                           context: CanvasRenderingContext2D) {
-        interactor.resize(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context))
+        interactor.updateConfig(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context))
     }
 
     override fun undo() {
@@ -70,9 +70,8 @@ class MainViewModel(private val size: Int,
         val drawer = RectDrawer(cellWidth, cellHeight)
         val transformer = TransformerImpl(size)
         val renderService = RenderServiceImpl(RenderServiceConfig(size, cellWidth, cellHeight, cellBorder, context),
-                transformer,
                 drawer)
 
-        interactor = MainInteractor(renderService)
+        interactor = MainInteractor(renderService, transformer)
     }
 }

@@ -13,17 +13,15 @@ class RectDrawer(private var cellWidth: Double,
         this.cellHeight = cellHeight
     }
 
-    override fun drawElement(context: CanvasRenderingContext2D, element: RenderServiceContract.DrawableElement) {
-        val cell = element as Cell
-
+    override fun drawElement(context: CanvasRenderingContext2D, element: Cell) {
         context.beginPath()
 
-        context.rect(cell.x,
-                cell.y,
+        context.rect(element.x,
+                element.y,
                 cellWidth,
                 cellHeight)
 
-        when (cell.value) {
+        when (element.value) {
             0 -> context.fillStyle = "#F3F35F"
             2 -> context.fillStyle = "#488281"
             4 -> context.fillStyle = "#C46B3E"
@@ -42,12 +40,12 @@ class RectDrawer(private var cellWidth: Double,
 
         context.fill()
 
-        if (cell.value != 0) {
+        if (element.value != 0) {
             val fontSize = cellWidth / 2f
             context.font = "${fontSize}px Arial"
             context.fillStyle = "white"
             context.textAlign = CanvasTextAlign.CENTER
-            context.fillText(cell.value.toString(), (cell.x + cellWidth / 2), (cell.y + cellWidth / 2))
+            context.fillText(element.value.toString(), (element.x + cellWidth / 2), (element.y + cellWidth / 2))
         }
     }
 }
