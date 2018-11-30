@@ -70,11 +70,20 @@ h1 {
     width: 500px;
     height: 500px;
     background: #4d4d4d;
-    visibility: visible;
+    visibility: hidden;
 }
 #lose_holder img {
     padding:0 2%;
     width: 20%;
     height: 20%;
+}
+#win_holder {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    left: 0%;
+    top: 0%;
+    background: #4d4d4d;
+    visibility: hidden;
 }
 

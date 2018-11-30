@@ -1,8 +1,10 @@
 package data
 
-data class Cell(var x: Double,
-                var y: Double,
-                var value: Int = 0) {
+import domain.RenderServiceContract
+
+data class Cell(override val x: Double,
+                override val y: Double,
+                var value: Int = 0) : RenderServiceContract.DrawableElement {
 
     override fun equals(other: Any?): Boolean {
         val obj = other is Cell

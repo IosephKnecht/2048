@@ -2,133 +2,145 @@ package domain
 
 import data.Cell
 import data.LiveData
-import domain.RenderServiceContract.Transformer.ActionMove
 
-class TransformerImpl(private val size: Int) : RenderServiceContract.Transformer {
+class TransformerImpl(private var size: Int) : RenderServiceContract.Transformer<Cell, List<List<Cell>>> {
 
-    override val scoreChangedObservable = LiveData<Int>()
+    override val transformChangeObservable = LiveData<Any>()
 
-    override fun moveLeft(cellList: MutableList<MutableList<Cell>>): List<ActionMove> {
-        return moveUpLeftTemplate({ i, j -> cellList[i][j] },
+    fun updateSize(size: Int) {
+        this.size = size
+    }
+
+    override fun left(cellList: List<List<Cell>>): List<List<Cell>> {
+        moveUpLeftTemplate({ i, j -> cellList[i][j] },
                 { innerCycle -> (innerCycle - 1) >= 0 }) { innerCycle, externalCycle ->
             val shiftCell = cellList[externalCycle][innerCycle - 1]
             val currentCell = cellList[externalCycle][innerCycle]
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveUpLeftTemplate ActionMove.EMPTY_MOVE
-            } else if (currentCell.value == shiftCell.value) {
-                onSuccessMove(shiftCell, currentCell)
-                return@moveUpLeftTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveUpLeftTemplate ActionMove.FAILED_MOVE
+
+            return@moveUpLeftTemplate when {
+                shiftCell.value == 0 -> {
+                    onEmptyMove(shiftCell, currentCell)
+                    true
+                }
+                currentCell.value == shiftCell.value -> {
+                    onSuccessMove(shiftCell, currentCell)
+                    false
+                }
+                else -> false
             }
         }
+
+        return cellList
     }
 
-    override fun moveRight(cellList: MutableList<MutableList<Cell>>): List<ActionMove> {
-        return moveDownRightTemplate({ i, j -> cellList[i][j] },
+    override fun right(cellList: List<List<Cell>>): List<List<Cell>> {
+        moveDownRightTemplate({ i, j -> cellList[i][j] },
                 { innerCycle -> (innerCycle + 1) < size }) { innerCycle, externalCycle ->
             val shiftCell = cellList[externalCycle][innerCycle + 1]
             val currentCell = cellList[externalCycle][innerCycle]
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveDownRightTemplate ActionMove.EMPTY_MOVE
-            } else if (currentCell.value == shiftCell.value) {
-                onSuccessMove(shiftCell, currentCell)
-                return@moveDownRightTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveDownRightTemplate ActionMove.FAILED_MOVE
+
+            return@moveDownRightTemplate when {
+                shiftCell.value == 0 -> {
+                    onEmptyMove(shiftCell, currentCell)
+                    true
+                }
+                currentCell.value == shiftCell.value -> {
+                    onSuccessMove(shiftCell, currentCell)
+                    false
+                }
+                else -> false
             }
         }
+
+        return cellList
     }
 
-    override fun moveUp(cellList: MutableList<MutableList<Cell>>): List<ActionMove> {
-        return moveUpLeftTemplate({ i, j -> cellList[j][i] },
+    override fun up(cellList: List<List<Cell>>): List<List<Cell>> {
+        moveUpLeftTemplate({ i, j -> cellList[j][i] },
                 { innerCycle -> (innerCycle > 0) }) { innerCycle, externalCycle ->
             val shiftCell = cellList[innerCycle - 1][externalCycle]
             val currentCell = cellList[innerCycle][externalCycle]
 
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveUpLeftTemplate ActionMove.EMPTY_MOVE
-            } else if (shiftCell.value == currentCell.value) {
-                onSuccessMove(shiftCell, currentCell)
-                return@moveUpLeftTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveUpLeftTemplate ActionMove.FAILED_MOVE
+            return@moveUpLeftTemplate when {
+                shiftCell.value == 0 -> {
+                    onEmptyMove(shiftCell, currentCell)
+                    true
+                }
+                shiftCell.value == currentCell.value -> {
+                    onSuccessMove(shiftCell, currentCell)
+                    false
+                }
+                else -> false
             }
         }
+
+        return cellList
     }
 
-    override fun moveDown(cellList: MutableList<MutableList<Cell>>): List<ActionMove> {
-        return moveDownRightTemplate({ i, j -> cellList[j][i] },
+    override fun down(cellList: List<List<Cell>>): List<List<Cell>> {
+        moveDownRightTemplate({ i, j -> cellList[j][i] },
                 { innerCycle -> (innerCycle + 1) < size }) { innerCycle, externalCycle ->
             val shiftCell = cellList[innerCycle + 1][externalCycle]
             val currentCell = cellList[innerCycle][externalCycle]
-            if (shiftCell.value == 0) {
-                shiftCell.value = currentCell.value
-                currentCell.value = 0
-                return@moveDownRightTemplate ActionMove.EMPTY_MOVE
-            } else if (shiftCell.value == currentCell.value) {
-                onSuccessMove(shiftCell, currentCell)
-                return@moveDownRightTemplate ActionMove.SUCCESS_MOVE
-            } else {
-                return@moveDownRightTemplate ActionMove.FAILED_MOVE
+
+            return@moveDownRightTemplate when {
+                shiftCell.value == 0 -> {
+                    onEmptyMove(shiftCell, currentCell)
+                    true
+                }
+                shiftCell.value == currentCell.value -> {
+                    onSuccessMove(shiftCell, currentCell)
+                    false
+                }
+                else -> false
             }
         }
+
+        return cellList
     }
 
     private fun moveDownRightTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
                                       whilePredicate: (innerCycle: Int) -> Boolean,
-                                      blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove): List<ActionMove> {
-        val actionMoveList = mutableListOf<ActionMove>()
-
+                                      blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
         for (i in 0..(size - 1)) {
             for (j in (size - 2) downTo 0) {
                 var temp = j
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
-                        val actionMove = blockWhile.invoke(temp, i)
-                        actionMoveList.add(actionMove)
-
-                        if (actionMove == ActionMove.EMPTY_MOVE) temp++
+                        if (blockWhile.invoke(temp, i)) temp++
                         else break
                     }
                 }
             }
         }
-
-        return actionMoveList
     }
 
     private fun moveUpLeftTemplate(startWhilePredicate: (i: Int, j: Int) -> Cell,
                                    whilePredicate: (innerCycle: Int) -> Boolean,
-                                   blockWhile: (innerCycle: Int, externalCycle: Int) -> ActionMove): List<ActionMove> {
-        val actionMoveList = mutableListOf<ActionMove>()
+                                   blockWhile: (innerCycle: Int, externalCycle: Int) -> Boolean) {
 
         for (i in 0..(size - 1)) {
             for (j in 1..(size - 1)) {
                 var temp = j
                 if (startWhilePredicate.invoke(i, j).value != 0) {
                     while (whilePredicate.invoke(temp)) {
-                        val actionMove = blockWhile.invoke(temp, i)
-                        actionMoveList.add(actionMove)
-                        if (actionMove == ActionMove.EMPTY_MOVE) temp--
+                        if (blockWhile.invoke(temp, i)) temp--
                         else break
                     }
                 }
             }
         }
-
-        return actionMoveList
     }
 
     private fun onSuccessMove(shiftCell: Cell, currentCell: Cell) {
         shiftCell.value *= 2
         currentCell.value = 0
-        scoreChangedObservable.setValue(shiftCell.value)
+
+        transformChangeObservable.setValue(shiftCell.value)
+    }
+
+    private fun onEmptyMove(shiftCell: Cell, currentCell: Cell) {
+        shiftCell.value = currentCell.value
+        currentCell.value = 0
     }
 }

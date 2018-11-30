@@ -10,31 +10,37 @@ interface MainContract {
         UP, DOWN, LEFT, RIGHT
     }
 
-    enum class State {
-        IDLE, INIT
-    }
-
     interface Interactor {
+        enum class GameState {
+            STARTING, WIN, LOSE, INFINITE
+        }
+
+        val gameStateObservable: ImmutableLiveData<GameState>
+        val scoreObservable: ImmutableLiveData<Int>
+
         fun startGame()
         fun actionMove(action: Action)
-        fun resize(config: RenderServiceConfig)
-        fun hasMoreMove(list: List<List<Cell>>): Boolean
         fun redraw()
+        fun updateConfig(config: RenderServiceConfig)
+        fun winHolderClick()
     }
 
     interface ViewModel {
         val loseObservable: ImmutableLiveData<Boolean>
         val actionObservable: MutableLiveData<Action>
         val scoreObservable: ImmutableLiveData<Int>
-        var state: State
+        val winObservable: ImmutableLiveData<Boolean>
 
         fun onResize(size: Int,
                      cellWidth: Double,
                      cellHeight: Double,
                      cellBorder: Double,
                      context: CanvasRenderingContext2D)
+
         fun reload()
 
         fun undo()
+
+        fun onWinHolderClick()
     }
 }

@@ -2,80 +2,119 @@ package presentation.interactor
 
 import data.CacheModel
 import data.Cell
+import data.LiveData
 import data.RenderServiceConfig
-import domain.RenderServiceImpl
+import domain.CellListChecker
+import domain.RenderServiceContract
+import domain.TransformerImpl
 import presentation.MainContract
+import presentation.MainContract.Interactor.GameState
+import presentation.increment
+import kotlin.js.Math
+import kotlin.math.ceil
+import kotlin.math.floor
 
-class MainInteractor : MainContract.Interactor {
+class MainInteractor(private val renderService: RenderServiceContract.RenderService<List<List<Cell>>>,
+                     private val transformer: RenderServiceContract.Transformer<Cell, List<List<Cell>>>) : MainContract.Interactor {
 
+    private val WIN_BORDER = 32
+
+    override val scoreObservable = LiveData<Int>()
+    override val gameStateObservable = LiveData<GameState>()
     private var cacheModel: CacheModel? = null
 
     init {
-        RenderServiceImpl.lastStateObservable.observe {
-            cacheModel = it
-            console.log(it.cellList)
+        transformer.transformChangeObservable.observe {
+            if (it is Int) {
+                scoreObservable.increment(it)
+
+                if (gameStateObservable.getValue() != GameState.INFINITE && it == WIN_BORDER)
+                    gameStateObservable.setValue(GameState.WIN)
+            }
         }
     }
 
     override fun startGame() {
-        RenderServiceImpl.startRender()
+        scoreObservable.setValue(0)
+        gameStateObservable.setValue(GameState.STARTING)
+        renderService.startRender()
+        pasteNewCell()
     }
 
     override fun actionMove(action: MainContract.Action) {
-        return when (action) {
-            MainContract.Action.DOWN -> RenderServiceImpl.moveDown()
-            MainContract.Action.RIGHT -> RenderServiceImpl.moveRight()
-            MainContract.Action.LEFT -> RenderServiceImpl.moveLeft()
-            MainContract.Action.UP -> RenderServiceImpl.moveUp()
+        if (isReactMoving()) {
+            val mutableCellList = renderService.copyList()
+            val immutableCellList = renderService.copyList()
+
+            when (action) {
+                MainContract.Action.DOWN -> transformer.down(mutableCellList)
+                MainContract.Action.RIGHT -> transformer.right(mutableCellList)
+                MainContract.Action.LEFT -> transformer.left(mutableCellList)
+                MainContract.Action.UP -> transformer.up(mutableCellList)
+            }
+
+            moveSideEffect(mutableCellList, immutableCellList)
         }
     }
 
-    override fun resize(config: RenderServiceConfig) {
-        RenderServiceImpl.restartService()
-        RenderServiceImpl.setRenderConfig(config)
-        startGame()
-    }
-
-    override fun hasMoreMove(list: List<List<Cell>>): Boolean {
-        val rowResult = checkRow(list)
-        val collResult = checkColl(list)
-        return rowResult || collResult
+    override fun winHolderClick() {
+        gameStateObservable.setValue(GameState.INFINITE)
     }
 
     override fun redraw() {
         cacheModel?.let {
-            RenderServiceImpl.restoreState(it)
+            scoreObservable.setValue(it.score)
+            renderService.updateList(cacheModel!!.cellList)
             cacheModel = null
         }
     }
 
-    private fun checkRow(list: List<List<Cell>>): Boolean {
-        val size = list.size - 1
-        for (i in 0..size) {
-            for (j in 0..(size - 1)) {
-                val currentCell = list[i][j]
-                val nextCell = list[i][j + 1]
-
-                if (currentCell.value == 0 ||
-                        nextCell.value == 0 ||
-                        currentCell.value == nextCell.value) return true
-            }
-        }
-        return false
+    override fun updateConfig(config: RenderServiceConfig) {
+        renderService.stopRender()
+        renderService.setRenderConfig(config)
+        // FIXME
+        (transformer as TransformerImpl).updateSize(config.size)
+        startGame()
     }
 
-    private fun checkColl(list: List<List<Cell>>): Boolean {
-        val size = list.size - 1
-        for (j in 0..(size - 1)) {
-            for (i in 0..size) {
-                val currentCell = list[j][i]
-                val nextCell = list[j + 1][i]
+    private fun pasteNewCell() {
+        val cellList = renderService.copyList()
 
-                if (currentCell.value == 0 ||
-                        nextCell.value == 0 ||
-                        currentCell.value == nextCell.value) return true
+        while (true) {
+            val row = floor(Math.random() * cellList.size).toInt()
+            val coll = floor(Math.random() * cellList.size).toInt()
+
+            if (cellList[row][coll].value == 0) {
+                cellList[row][coll].value = 2 * ceil(Math.random() * 2).toInt()
+                renderService.updateList(cellList)
+                return
             }
         }
-        return false
+    }
+
+    private fun addRestoreState(cacheList: List<List<Cell>>) {
+        cacheModel = CacheModel(cacheList, scoreObservable.getValue() ?: 0)
+    }
+
+    private fun moveSideEffect(mutableCellList: List<List<Cell>>, immutableCellList: List<List<Cell>>) {
+        if (mutableCellList != immutableCellList) {
+            renderService.updateList(mutableCellList)
+            addRestoreState(immutableCellList)
+
+            if (CellListChecker.isEmpty(mutableCellList)) {
+                pasteNewCell()
+
+                // FIXME: hard logic
+                if (!CellListChecker.checkColl(mutableCellList) &&
+                        !CellListChecker.checkRow(mutableCellList)) {
+                    gameStateObservable.setValue(GameState.LOSE)
+                }
+            }
+        }
+    }
+
+    private fun isReactMoving(): Boolean {
+        val gameStateValue = gameStateObservable.getValue()
+        return gameStateValue != GameState.WIN && gameStateValue != GameState.LOSE
     }
 }

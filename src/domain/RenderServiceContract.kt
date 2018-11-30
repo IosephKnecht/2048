@@ -1,37 +1,34 @@
 package domain
 
 import data.*
+import org.w3c.dom.CanvasRenderingContext2D
 
 interface RenderServiceContract {
-    interface RenderService {
+
+    interface RenderService<T : List<List<RenderServiceContract.DrawableElement>>> {
         fun startRender()
         fun stopRender()
         fun restartService()
-        fun restoreState(cacheModel: CacheModel)
         fun setRenderConfig(config: RenderServiceConfig)
-
-        fun moveLeft()
-        fun moveRight()
-        fun moveDown()
-        fun moveUp()
+        fun copyList(): T
+        fun updateList(updatedList: T)
     }
 
-    interface Transformer {
-        enum class ActionMove {
-            EMPTY_MOVE, SUCCESS_MOVE, FAILED_MOVE
-        }
+    interface Transformer<E : DrawableElement, T : List<List<E>>> {
+        val transformChangeObservable: ImmutableLiveData<Any>
 
-        val scoreChangedObservable: ImmutableLiveData<Int>
-
-        fun moveLeft(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
-        fun moveRight(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
-        fun moveUp(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
-        fun moveDown(cellList: MutableList<MutableList<Cell>>): List<ActionMove>
+        fun left(cellList: T): T
+        fun right(cellList: T): T
+        fun up(cellList: T): T
+        fun down(cellList: T): T
     }
 
-    interface ObservableProvider {
-        val scoreObservable: ImmutableLiveData<Int>
-        val lastStateObservable: ImmutableLiveData<CacheModel>
-        val changeListObservable: ImmutableLiveData<List<List<Cell>>>
+    interface DrawableElement {
+        val x: Double
+        val y: Double
+    }
+
+    interface Drawer<T : DrawableElement> {
+        fun drawElement(context: CanvasRenderingContext2D, element: T)
     }
 }
