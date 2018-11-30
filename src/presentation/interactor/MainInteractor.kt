@@ -98,18 +98,17 @@ class MainInteractor(private val renderService: RenderServiceContract.RenderServ
     }
 
     private fun moveSideEffect(mutableCellList: List<List<Cell>>, immutableCellList: List<List<Cell>>) {
+        if (!CellListChecker.checkColl(mutableCellList) &&
+                !CellListChecker.checkRow(mutableCellList)) {
+            gameStateObservable.setValue(GameState.LOSE)
+        }
+
         if (mutableCellList != immutableCellList) {
             renderService.updateList(mutableCellList)
             addRestoreState(immutableCellList)
 
             if (CellListChecker.isEmpty(mutableCellList)) {
                 pasteNewCell()
-
-                // FIXME: hard logic
-                if (!CellListChecker.checkColl(mutableCellList) &&
-                        !CellListChecker.checkRow(mutableCellList)) {
-                    gameStateObservable.setValue(GameState.LOSE)
-                }
             }
         }
     }
