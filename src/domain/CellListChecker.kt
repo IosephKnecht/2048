@@ -18,7 +18,12 @@ object CellListChecker {
 
         for (i in 0..(size - 1)) {
             for (j in 0..(size - 2)) {
-                if (list[i][j].value == list[i][j + 1].value) return true
+                val currentCell = list[i][j]
+                val nextCell = list[i][j + 1]
+
+                if (currentCell.value == 0 ||
+                        nextCell.value == 0 ||
+                        currentCell.value == nextCell.value) return true
             }
         }
 
@@ -30,7 +35,12 @@ object CellListChecker {
 
         for (j in 0..(size - 1)) {
             for (i in 0..(size - 2)) {
-                if (list[i][j].value == list[i + 1][j].value) return true
+                val currentCell = list[i][j]
+                val nexCell = list[i + 1][j]
+
+                if (currentCell.value == 0 ||
+                        nexCell.value == 0 ||
+                        currentCell.value == nexCell.value) return true
             }
         }
 

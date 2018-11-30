@@ -17,7 +17,7 @@ import kotlin.math.floor
 class MainInteractor(private val renderService: RenderServiceContract.RenderService<List<List<Cell>>>,
                      private val transformer: RenderServiceContract.Transformer<Cell, List<List<Cell>>>) : MainContract.Interactor {
 
-    private val WIN_BORDER = 32
+    private val WIN_BORDER = 2048
 
     override val scoreObservable = LiveData<Int>()
     override val gameStateObservable = LiveData<GameState>()
@@ -70,6 +70,7 @@ class MainInteractor(private val renderService: RenderServiceContract.RenderServ
     }
 
     override fun updateConfig(config: RenderServiceConfig) {
+        gameStateObservable.setValue(GameState.STARTING)
         renderService.stopRender()
         renderService.setRenderConfig(config)
         // FIXME
