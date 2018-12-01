@@ -65,6 +65,7 @@ class MainInteractor(private val renderService: RenderServiceContract.RenderServ
         cacheModel?.let {
             scoreObservable.setValue(it.score)
             renderService.updateList(cacheModel!!.cellList)
+            gameStateObservable.setValue(GameState.STARTING)
             cacheModel = null
         }
     }
@@ -98,11 +99,6 @@ class MainInteractor(private val renderService: RenderServiceContract.RenderServ
     }
 
     private fun moveSideEffect(mutableCellList: List<List<Cell>>, immutableCellList: List<List<Cell>>) {
-        if (!CellListChecker.checkColl(mutableCellList) &&
-                !CellListChecker.checkRow(mutableCellList)) {
-            gameStateObservable.setValue(GameState.LOSE)
-        }
-
         if (mutableCellList != immutableCellList) {
             renderService.updateList(mutableCellList)
             addRestoreState(immutableCellList)
@@ -110,6 +106,11 @@ class MainInteractor(private val renderService: RenderServiceContract.RenderServ
             if (CellListChecker.isEmpty(mutableCellList)) {
                 pasteNewCell()
             }
+        }
+
+        if (!CellListChecker.isEmpty(mutableCellList) && !CellListChecker.checkColl(mutableCellList) &&
+                !CellListChecker.checkRow(mutableCellList)) {
+            gameStateObservable.setValue(GameState.LOSE)
         }
     }
 

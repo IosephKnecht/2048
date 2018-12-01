@@ -2,8 +2,16 @@ package domain
 
 import data.Cell
 
+/**
+ * Helper for check cellList.
+ */
 object CellListChecker {
 
+    /**
+     * Method for check cellList on element with value = 0.
+     * @param list analyzing list.
+     * @return true, if exist one element with value = 0.
+     */
     fun isEmpty(list: List<List<Cell>>): Boolean {
         list.forEach {
             it.forEach {
@@ -13,6 +21,12 @@ object CellListChecker {
         return false
     }
 
+
+    /**
+     * Method for check all column on empty cell.
+     * @param list analyzing list.
+     * @return true, if exist empty cell.
+     */
     fun checkColl(list: List<List<Cell>>): Boolean {
         val size = list.size
 
@@ -30,6 +44,11 @@ object CellListChecker {
         return false
     }
 
+    /**
+     * Method for check all row on empty cell.
+     * @param list analyzing list.
+     * @return true, if exist empty cell.
+     */
     fun checkRow(list: List<List<Cell>>): Boolean {
         val size = list.size
 
