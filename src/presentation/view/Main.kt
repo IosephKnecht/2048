@@ -2,7 +2,9 @@ package presentation.view
 
 import org.w3c.dom.*
 import org.w3c.dom.events.KeyboardEvent
+import presentation.Debounce
 import presentation.MainContract.Action
+import presentation.Throttle
 import presentation.viewModel.MainViewModel
 import kotlin.browser.document
 import kotlin.browser.window
@@ -79,9 +81,11 @@ fun main(args: Array<String>) {
         }
     }
 
+    val keyBoardThrottle = Throttle()
+
     document.onkeydown = {
         if (it is KeyboardEvent) {
-            keyDownEvent.invoke(it)
+            keyBoardThrottle.execute({ keyDownEvent.invoke(it) }, 100)
         }
     }
 }
