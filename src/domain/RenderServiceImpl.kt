@@ -21,14 +21,6 @@ class RenderServiceImpl(private var config: RenderServiceConfig,
         window.cancelAnimationFrame(requestAnimationFrameValue!!)
     }
 
-    override fun restartService() {
-        requestAnimationFrameValue?.let { window.cancelAnimationFrame(it) }
-
-        reset()
-
-        animate()
-    }
-
     override fun setRenderConfig(config: RenderServiceConfig) {
         this.config = config
         (drawer as RectDrawer).updateParams(config.cellWidth, config.cellHeight)
